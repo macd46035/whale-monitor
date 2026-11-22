@@ -234,6 +234,53 @@
   .wfill .warn{color:var(--warn)}
   .errline{padding:12px 15px;color:var(--short);font-size:12.5px;background:var(--short-dim);border-bottom:1px solid var(--line-soft)}
 
+  /* ── 빈 지갑 숨김 토글 · BTC·ETH 비중 배지 ──────── */
+  .sec-head .toggle{margin-left:auto}
+  .btn.toggle[aria-pressed="true"]{
+    background:rgba(91,140,255,.16);border-color:rgba(91,140,255,.5);color:#cfe0ff;
+  }
+  .btn.toggle b{color:#fff;font-weight:750;font-variant-numeric:tabular-nums}
+  .whale-scope{
+    padding:7px 15px 9px;border-bottom:1px solid var(--line-soft);
+    background:rgba(12,18,27,.25);
+  }
+  .whale-scope .line{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted-2)}
+  .whale-scope b{color:var(--text);font-weight:650;font-variant-numeric:tabular-nums}
+  .whale-scope .pct b{color:#a9c0ff}
+  .whale-scope .bar{height:5px;border-radius:999px;background:#0c121b;border:1px solid var(--line-soft);overflow:hidden;margin-top:5px}
+  .whale-scope .bar i{display:block;height:100%;background:linear-gradient(90deg,#2f6bff,#5b8cff)}
+  .whale-scope.none .pct b{color:var(--muted-2)}
+
+  /* ── 포지션 변동 로그 ──────────────────────────── */
+  .events{padding:0;overflow:hidden}
+  .evt-row{
+    display:grid;grid-template-columns:64px minmax(96px,1.4fr) 44px 68px 52px minmax(120px,1fr);
+    gap:10px;align-items:center;padding:8px 15px;border-bottom:1px solid var(--line-soft);
+    font-size:12px;font-variant-numeric:tabular-nums;
+  }
+  .evt-row:last-child{border-bottom:none}
+  .evt-row:hover{background:rgba(91,140,255,.045)}
+  .evt-t{color:var(--muted-2);font-size:11px}
+  .evt-w{color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .evt-coin{font-weight:650}
+  .evt-type{
+    display:inline-block;text-align:center;font-size:10.5px;font-weight:750;letter-spacing:.2px;
+    padding:2px 6px;border-radius:5px;white-space:nowrap;
+  }
+  .evt-type.open{color:#a9c0ff;background:rgba(91,140,255,.14)}
+  .evt-type.add{color:var(--long);background:var(--long-dim)}
+  .evt-type.reduce{color:var(--warn);background:rgba(255,184,77,.13)}
+  .evt-type.close{color:var(--short);background:var(--short-dim)}
+  .evt-side{text-align:left}
+  .evt-side .side-pill{font-size:10px}
+  .evt-d{text-align:right;color:var(--muted);font-size:11.5px;white-space:nowrap}
+  .evt-d b{color:var(--text);font-weight:650}
+  .evt-foot{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    padding:7px 15px;border-top:1px solid var(--line-soft);background:rgba(12,18,27,.3);
+    font-size:11px;color:var(--muted-2);
+  }
+
   table{width:100%;border-collapse:collapse}
   thead th{
     text-align:right;font-size:10.5px;font-weight:600;color:var(--muted-2);
@@ -337,6 +384,12 @@
     .whale-stats{margin-left:0;width:100%;gap:14px;padding-top:2px}
     .ws{text-align:left}
     .ws .v{font-size:13px}
+    .sec-head .toggle{margin-left:0}
+    .evt-row{display:flex;flex-wrap:wrap;gap:4px 8px;padding:9px 12px;font-size:12px}
+    .evt-t{width:60px;flex:none}
+    .evt-w{flex:1 1 auto;min-width:80px}
+    .evt-type{margin-left:auto}
+    .evt-d{flex-basis:100%;text-align:right}
 
     /* stacked position cards — 차트 라이브러리 내부 table 레이아웃을 건드리지 않도록 .whale로 한정 */
     .whale table,.whale thead,.whale tbody,.whale tr,.whale td{display:block;width:100%}
@@ -467,6 +520,7 @@
       <span><span class="swatch long"></span> 롱 <i id="biasLongPct">—</i></span>
       <span><span class="swatch short"></span> 숏 <i id="biasShortPct">—</i></span>
       <span>포지션 <i id="biasCount">—</i></span>
+      <span>BTC·ETH 노출 비중 <i id="biasScope">—</i></span>
     </div>
   </div>
 
@@ -493,6 +547,21 @@
     <span class="count-pill" id="filterCount"></span>
   </div>
 
+  <!-- 포지션 변동 로그 -->
+  <div class="sec-head">
+    <h2>포지션 변동 로그</h2>
+    <span id="evtSub">5초 갱신마다 직전 스냅샷과 비교 · BTC·ETH</span>
+  </div>
+  <section class="panel events" id="evtPanel" aria-label="BTC·ETH 포지션 변동 로그">
+    <div class="evt-list" id="evtList">
+      <div class="empty">아직 기록된 변동이 없습니다.</div>
+    </div>
+    <div class="evt-foot">
+      <span>최근 20건 표시 · 이 브라우저에 최대 200건 보관</span>
+      <button class="btn small ghost" id="evtClear" type="button">로그 지우기</button>
+    </div>
+  </section>
+
   <!-- 지갑 관리 -->
   <div class="panel wallets">
     <div class="row">
@@ -509,6 +578,8 @@
   <div class="sec-head">
     <h2>고래별 포지션</h2>
     <span id="whaleSub"></span>
+    <button class="btn small toggle" id="hideEmptyBtn" type="button" aria-pressed="true"
+      title="BTC·ETH 포지션이 0개인 지갑 카드를 숨깁니다">빈 지갑 숨기기</button>
   </div>
   <div class="whales" id="whaleList">
     <div class="panel empty">데이터를 불러오는 중입니다…</div>
@@ -517,7 +588,12 @@
   <footer>
     <div><b>데이터 출처</b> Hyperliquid 공개 API (<code>api.hyperliquid.xyz/info</code>) ·
       차트는 TradingView Lightweight Charts · 5초마다 자동 갱신</div>
-    <div><b>표시 범위</b> 포지션 표·요약·코인 집계·차트 지표는 <b>BTC·ETH</b> 포지션만 집계합니다(다른 코인 포지션은 표시하지 않음).</div>
+    <div><b>표시 범위</b> 포지션 표·요약·코인 집계·차트 지표는 <b>BTC·ETH</b> 포지션만 집계합니다(다른 코인 포지션은 표시하지 않음).
+      각 지갑 카드에는 <b>전체 포지션 개수와 BTC·ETH 비중</b>을 함께 표시해, 그 지갑이 다른 코인도 보유 중인지 바로 알 수 있습니다.
+      BTC·ETH 포지션이 0개인 지갑은 <b>빈 지갑 숨기기</b>로 감출 수 있습니다(기본 켜짐).</div>
+    <div><b>변동 로그</b> 5초 갱신 때마다 직전 스냅샷과 비교해 BTC·ETH 포지션의 <b>신규 진입·증액·축소·청산</b>을 기록합니다.
+      최근 20건을 표시하고 이 브라우저에 최대 200건 보관합니다. 페이지를 열었을 때의 첫 스냅샷은 기준선으로만 쓰고,
+      10분 이상 화면을 비웠다가 돌아오면 그 시점 값을 새 기준선으로 잡습니다(그 사이 변동은 기록하지 않음).</div>
     <div><b>차트</b> 위 패널은 BTC 무기한(1시간·15분·4시간) 캔들과 고래들의 롱 비율(포지션 평가액 비중)입니다.
       과거 지표는 각 지갑의 <code>userFillsByTime</code> 체결을 현재 포지션에서 되돌려 복원하고,
       그 이전 구간은 현재 포지션을 그대로 적용한 추정값입니다. 체결 내역은 지갑마다 2,000건씩 최대 5페이지(10,000건)까지
@@ -544,22 +620,40 @@
 
   var API = "https://api.hyperliquid.xyz/info";
   var REFRESH_MS = 5000;
-  var LS_KEY = "hl_whale_monitor_wallets_v2";
+  var LS_KEY = "hl_whale_monitor_wallets_v3";
+  var LS_KEY_V2 = "hl_whale_monitor_wallets_v2";
   var LS_KEY_V1 = "hl_whale_monitor_wallets_v1";
 
-  /* 리더보드 누적 수익 기준 상위 고래 10곳 (2026-11 기준 활성 확인) */
+  /* 리더보드 누적 수익 기준 상위 고래 10곳.
+     2026-11-23 확인: 0x5b5d…c060 · 0xb83d…6e36 은 계좌가치 $0·포지션 없음,
+     0xd475…1a91 은 UNI·HYPE 만 보유하고 BTC·ETH 포지션이 0개여서 세 곳을
+     아래 활성 BTC·ETH 고래(리더보드 누적 수익·24시간 체결·현재 BTC/ETH 노출 확인)로 교체했습니다. */
   var DEFAULTS = [
-    { address: "0x5b5d51203a0f9079f8aeb098a6523a13f298c060", label: "0x5b5d…c060", tag: "누적 +$311.2M" },
-    { address: "0xb83de012dba672c76a7dbbbf3e459cb59d7d6e36", label: "0xb83d…6e36", tag: "누적 +$241.1M" },
     { address: "0xecb63caa47c7c4e77f60f1ce858cf28dc2b82b00", label: "0xecb6…2b00", tag: "누적 +$230.4M" },
     { address: "0x7fdafde5cfb5465924316eced2d3715494c517d1", label: "BobbyBigSize", tag: "누적 +$173.8M" },
     { address: "0x880ac484a1743862989a441d6d867238c7aa311c", label: "x.com/SilkBtc", tag: "누적 +$123.3M" },
     { address: "0x45d26f28196d226497130c4bac709d808fed4029", label: "0x45d2…4029", tag: "누적 +$94.7M" },
     { address: "0xa312114b5795dff9b8db50474dd57701aa78ad1e", label: "NAKED SHORTS ONLY", tag: "누적 +$93.8M" },
-    { address: "0xd47587702a91731dc1089b5db0932cf820151a91", label: "0xd475…1a91", tag: "누적 +$78.0M" },
     { address: "0x8af700ba841f30e0a3fcb0ee4c4a9d223e1efa05", label: "0x8af7…fa05", tag: "누적 +$74.8M" },
-    { address: "0x7dacca323e44f168494c779bb5e7483c468ef410", label: "0x7dac…f410", tag: "누적 +$62.3M" }
+    { address: "0x7dacca323e44f168494c779bb5e7483c468ef410", label: "0x7dac…f410", tag: "누적 +$62.3M" },
+    { address: "0x023a3d058020fb76cca98f01b3c48c8938a22355", label: "0x023a…2355", tag: "누적 +$59.4M" },
+    { address: "0xfc667adba8d4837586078f4fdcdc29804337ca06", label: "0xfc66…ca06", tag: "누적 +$54.6M" },
+    { address: "0xdf954bbe619273a56e0cfa90dad8382195dc7d72", label: "0xdf95…7d72", tag: "누적 +$33.0M" }
   ];
+
+  /* 교체된 기본 지갑 → 새 기본 고래 (기존 방문자의 localStorage를 옮길 때 사용) */
+  var REPLACED = {
+    "0x5b5d51203a0f9079f8aeb098a6523a13f298c060": "0x023a3d058020fb76cca98f01b3c48c8938a22355",
+    "0xb83de012dba672c76a7dbbbf3e459cb59d7d6e36": "0xfc667adba8d4837586078f4fdcdc29804337ca06",
+    "0xd47587702a91731dc1089b5db0932cf820151a91": "0xdf954bbe619273a56e0cfa90dad8382195dc7d72"
+  };
+  var OLD_DEFAULT_ADDRS = {};
+  ["0x5b5d51203a0f9079f8aeb098a6523a13f298c060", "0xb83de012dba672c76a7dbbbf3e459cb59d7d6e36",
+    "0xecb63caa47c7c4e77f60f1ce858cf28dc2b82b00", "0x7fdafde5cfb5465924316eced2d3715494c517d1",
+    "0x880ac484a1743862989a441d6d867238c7aa311c", "0x45d26f28196d226497130c4bac709d808fed4029",
+    "0xa312114b5795dff9b8db50474dd57701aa78ad1e", "0xd47587702a91731dc1089b5db0932cf820151a91",
+    "0x8af700ba841f30e0a3fcb0ee4c4a9d223e1efa05", "0x7dacca323e44f168494c779bb5e7483c468ef410"]
+    .forEach(function (a) { OLD_DEFAULT_ADDRS[a] = 1; });
 
   /* ───────────── state ───────────── */
   var wallets = loadWallets();
@@ -573,6 +667,19 @@
   var lastUpdate = null;
   var lastError = null;
   var ticker = null;
+
+  /* 빈 지갑(BTC·ETH 포지션 0개) 숨김 — 기본 켜짐 */
+  var HIDE_KEY = "hl_whale_hide_empty_v1";
+  var hideEmpty = loadHideEmpty();
+
+  /* 포지션 변동 로그 — 직전 스냅샷과 비교해 BTC·ETH 변동만 기록 */
+  var EVT_KEY = "hl_whale_pos_events_v1";
+  var EVT_LABEL = { open: "신규 진입", add: "증액", reduce: "축소", close: "청산" };
+  var EVT_MAX = 200;          // 보관 상한
+  var EVT_VIEW = 20;          // 화면 표시
+  var EVT_MERGE_MS = 120000;  // 같은 지갑·코인·종류의 연속 변동은 2분 안에서 합침
+  var EVT_GAP_MS = 600000;    // 10분 이상 비우면 그 시점 값을 새 기준선으로
+  var EV = loadEvents();
 
   /* ── 표시 범위: BTC·ETH 포지션만 ──
      포지션 표·요약·코인 집계·차트 지표가 모두 이 범위를 따릅니다. */
@@ -596,7 +703,9 @@
     coinSearch: $("coinSearch"), filterCount: $("filterCount"),
     newAddr: $("newAddr"), newLabel: $("newLabel"), addBtn: $("addBtn"), resetBtn: $("resetBtn"),
     chips: $("chips"), walletHint: $("walletHint"),
-    whaleList: $("whaleList"), whaleSub: $("whaleSub")
+    whaleList: $("whaleList"), whaleSub: $("whaleSub"),
+    hideEmptyBtn: $("hideEmptyBtn"), biasScope: $("biasScope"),
+    evtList: $("evtList"), evtSub: $("evtSub"), evtClear: $("evtClear")
   };
 
   /* ───────────── helpers ───────────── */
@@ -647,54 +756,112 @@
   }
 
   /* ───────────── wallet storage ───────────── */
+  function normalizeWallets(arr) {
+    return (Array.isArray(arr) ? arr : [])
+      .filter(function (w) { return w && /^0x[a-fA-F0-9]{40}$/.test(String(w.address || "")); })
+      .map(function (w) {
+        return {
+          address: String(w.address).toLowerCase(),
+          label: String(w.label || shortAddr(String(w.address))),
+          tag: String(w.tag || "")
+        };
+      });
+  }
+
   function loadWallets() {
     try {
       var raw = localStorage.getItem(LS_KEY);
-      if (!raw) return migrateWallets();
-      var arr = JSON.parse(raw);
-      if (!Array.isArray(arr)) return DEFAULTS.slice();
-      var out = arr
-        .filter(function (w) { return w && /^0x[a-fA-F0-9]{40}$/.test(String(w.address || "")); })
-        .map(function (w) {
-          return {
-            address: String(w.address).toLowerCase(),
-            label: String(w.label || shortAddr(String(w.address))),
-            tag: String(w.tag || "")
-          };
-        });
-      return out.length ? out : DEFAULTS.slice();
-    } catch (e) {
-      return DEFAULTS.slice();
-    }
-  }
-
-  /* v1 목록에서 사용자가 직접 추가했던 지갑만 새 목록에 이어붙입니다. */
-  function migrateWallets() {
-    var merged = DEFAULTS.slice();
-    try {
-      var old = JSON.parse(localStorage.getItem(LS_KEY_V1) || "[]");
-      if (Array.isArray(old)) {
-        var known = {};
-        DEFAULTS.forEach(function (d) { known[d.address] = 1; });
-        old.forEach(function (w) {
-          var a = String((w && w.address) || "").toLowerCase();
-          if (/^0x[a-f0-9]{40}$/.test(a) && !known[a]) {
-            known[a] = 1;
-            merged.push({
-              address: a,
-              label: String((w && w.label) || shortAddr(a)),
-              tag: String((w && w.tag) || "직접 추가")
-            });
-          }
-        });
+      if (raw) {
+        var out = normalizeWallets(JSON.parse(raw));
+        return out.length ? out : migrateWallets();
       }
     } catch (e) {}
-    try { localStorage.setItem(LS_KEY, JSON.stringify(merged)); } catch (e) {}
-    return merged;
+    return migrateWallets();
+  }
+
+  /* 이전 목록(v2)을 v3로 옮깁니다.
+     - BTC·ETH 포지션이 없던 기본 지갑 3곳은 새 활성 고래로 같은 자리에서 교체
+     - 사용자가 직접 추가한 지갑·별칭은 그대로 유지
+     - v2가 없으면 v1에서 사용자 추가분만 이어붙임 */
+  function migrateWallets() {
+    var base = null;
+    try {
+      var raw2 = localStorage.getItem(LS_KEY_V2);
+      if (raw2) {
+        var v2 = normalizeWallets(JSON.parse(raw2));
+        if (v2.length) base = v2;
+      }
+    } catch (e) {}
+    if (!base) {
+      try {
+        var v1 = normalizeWallets(JSON.parse(localStorage.getItem(LS_KEY_V1) || "[]"));
+        if (v1.length) {
+          base = DEFAULTS.slice();
+          v1.forEach(function (w) { if (!OLD_DEFAULT_ADDRS[w.address]) base.push(w); });
+        }
+      } catch (e) {}
+    }
+    if (!base) base = DEFAULTS.slice();
+
+    var byAddr = {};
+    DEFAULTS.forEach(function (d) { byAddr[d.address] = d; });
+    var out = [], seen = {};
+    base.forEach(function (w) {
+      var d = REPLACED[w.address] ? byAddr[REPLACED[w.address]] : null;
+      var next = d ? { address: d.address, label: d.label, tag: d.tag } : w;
+      if (seen[next.address]) return;
+      seen[next.address] = 1;
+      out.push(next);
+    });
+    if (!out.length) out = DEFAULTS.slice();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(out)); } catch (e) {}
+    return out;
   }
 
   function saveWallets() {
     try { localStorage.setItem(LS_KEY, JSON.stringify(wallets)); } catch (e) {}
+  }
+
+  /* ───────────── 빈 지갑 숨김 설정 ───────────── */
+  function loadHideEmpty() {
+    try { return localStorage.getItem(HIDE_KEY) !== "0"; } catch (e) { return true; }
+  }
+  function saveHideEmpty() {
+    try { localStorage.setItem(HIDE_KEY, hideEmpty ? "1" : "0"); } catch (e) {}
+  }
+
+  /* ───────────── 포지션 변동 로그 저장 ─────────────
+     { base: { address: { BTC: size, ... } }, baseAt, ev: [event, ...] }
+     기준선(base)을 같이 저장해, 페이지를 다시 열어도 곧바로 비교할 수 있습니다. */
+  function loadEvents() {
+    var st = { events: [], base: {}, baseAt: 0, lastSave: 0, skip: {} };
+    try {
+      var raw = localStorage.getItem(EVT_KEY);
+      if (!raw) return st;
+      var d = JSON.parse(raw);
+      if (!d || typeof d !== "object") return st;
+      if (Array.isArray(d.ev)) {
+        st.events = d.ev.filter(function (e) {
+          return e && (e.coin === "BTC" || e.coin === "ETH") && EVT_LABEL[e.type] &&
+            (e.side === "long" || e.side === "short") && /^0x[a-fA-F0-9]{40}$/.test(String(e.addr || "")) &&
+            isFinite(e.t) && isFinite(e.dSize);
+        }).slice(0, EVT_MAX);
+      }
+      if (d.base && typeof d.base === "object") st.base = d.base;
+      st.baseAt = num(d.baseAt);
+    } catch (e) {}
+    return st;
+  }
+
+  function saveEvents(force) {
+    var now = Date.now();
+    if (!force && now - EV.lastSave < 12000) return;
+    EV.lastSave = now;
+    try {
+      localStorage.setItem(EVT_KEY, JSON.stringify({
+        base: EV.base, baseAt: EV.baseAt, ev: EV.events.slice(0, EVT_MAX)
+      }));
+    } catch (e) {}
   }
 
   /* ───────────── data ───────────── */
@@ -723,14 +890,15 @@
     return num(v);
   }
 
-  function positionsOf(state) {
+  /* scopeOnly=true → BTC·ETH 만, false → 지갑의 모든 포지션(비중 계산용) */
+  function parsePositions(state, scopeOnly) {
     var arr = (state && state.assetPositions) || [];
     var out = [];
     for (var i = 0; i < arr.length; i++) {
       var item = arr[i] || {};
       var p = item.position || item;
       if (!p || !p.coin) continue;
-      if (!inScope(p.coin)) continue;      // BTC·ETH 외 코인 포지션 제외
+      if (scopeOnly && !inScope(p.coin)) continue;      // BTC·ETH 외 코인 포지션 제외
       var size = num(p.szi);
       if (size === 0) continue;
       var isLong = size > 0;
@@ -754,6 +922,9 @@
     out.sort(function (a, b) { return b.value - a.value; });
     return out;
   }
+
+  function positionsOf(state) { return parsePositions(state, true); }
+  function allPositionsOf(state) { return parsePositions(state, false); }
 
   function sumUnrealized(state) {
     var t = 0;
@@ -810,6 +981,7 @@
       else if (failed.length) lastError = failed.length + "개 지갑 조회 실패";
       lastUpdate = new Date();
       remaining = REFRESH_MS / 1000;
+      trackChanges();
       render();
       setStatus();
       if (!CH.booted) bootChart();
@@ -850,7 +1022,7 @@
 
   /* ───────────── aggregation ───────────── */
   function aggregate() {
-    var acc = { accountValue: 0, longExp: 0, shortExp: 0, upnl: 0, posCount: 0, ok: 0, err: 0, totalNtl: 0 };
+    var acc = { accountValue: 0, longExp: 0, shortExp: 0, upnl: 0, posCount: 0, ok: 0, err: 0, totalNtl: 0, allExp: 0, allCount: 0 };
     var coins = {};
     wallets.forEach(function (w) {
       var d = cache[w.address];
@@ -861,6 +1033,9 @@
       acc.totalNtl += Math.abs(num(ms.totalNtlPos));
       var ps = positionsOf(d.state);
       acc.upnl += sumUnrealized(d.state);
+      var allPs = allPositionsOf(d.state);
+      acc.allCount += allPs.length;
+      for (var j = 0; j < allPs.length; j++) acc.allExp += allPs[j].value;
       for (var i = 0; i < ps.length; i++) {
         var p = ps[i];
         acc.posCount++;
@@ -876,6 +1051,138 @@
       .sort(function (a, b) { return (b.long + b.short) - (a.long + a.short); });
     return acc;
   }
+
+  /* ───────────── 포지션 변동 로그 ───────────── */
+  function fmtSize(v) {
+    var a = Math.abs(num(v));
+    var d = a >= 1000 ? 0 : a >= 10 ? 1 : a >= 1 ? 2 : 4;
+    return a.toLocaleString("en-US", { maximumFractionDigits: d });
+  }
+
+  function fmtEvtTime(t) {
+    var d = new Date(t), n = new Date();
+    var same = d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate();
+    if (same) return fmtClock(d);
+    var p = function (x) { return (x < 10 ? "0" : "") + x; };
+    return p(d.getMonth() + 1) + "." + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  /* 같은 지갑·코인·종류·방향의 변화가 2분 안에 이어지면 한 건으로 합칩니다(부분 체결 대응) */
+  function pushEvt(w, coin, side, type, dSize, px, size) {
+    var now = Date.now();
+    var dUsd = dSize * num(px);
+    for (var i = 0; i < EV.events.length; i++) {
+      var e = EV.events[i];
+      if (e.addr === w.address && e.coin === coin && e.type === type && e.side === side &&
+          now - e.t < EVT_MERGE_MS) {
+        e.t = now;
+        e.dSize += dSize;
+        e.dUsd += dUsd;
+        e.size = size;
+        if (px) e.px = num(px);
+        return;
+      }
+    }
+    EV.events.unshift({
+      t: now, addr: w.address, label: w.label, coin: coin, side: side, type: type,
+      dSize: dSize, dUsd: dUsd, size: size, px: num(px)
+    });
+    if (EV.events.length > EVT_MAX) EV.events.length = EVT_MAX;
+  }
+
+  /* 매 갱신마다 현재 BTC·ETH 포지션을 직전 기준선과 비교해 변동을 기록합니다. */
+  function trackChanges() {
+    var now = Date.now();
+    var next = {}, any = false;
+    wallets.forEach(function (w) {
+      var d = cache[w.address];
+      if (!d || !d.ok) return;          // 조회 실패한 지갑은 기준선을 건드리지 않음(청산으로 오인 방지)
+      any = true;
+      var m = {};
+      var ps = positionsOf(d.state);
+      for (var i = 0; i < ps.length; i++) m[ps[i].coin] = ps[i].size;
+      next[w.address] = m;
+    });
+    if (!any) return;
+
+    var hasBase = EV.baseAt > 0 && !!Object.keys(EV.base).length;
+    if (!hasBase || now - EV.baseAt > EVT_GAP_MS) {
+      /* 첫 스냅샷·오래 비운 뒤: 기존 포지션을 변동으로 기록하지 않고 기준선만 잡음 */
+      EV.base = next;
+      EV.baseAt = now;
+      saveEvents(true);
+      renderEvents();
+      return;
+    }
+
+    var changed = false;
+    wallets.forEach(function (w) {
+      var nx = next[w.address];
+      if (!nx) return;
+      if (EV.skip[w.address]) { delete EV.skip[w.address]; return; }
+      var pv = EV.base[w.address];
+      if (!pv) { EV.base[w.address] = nx; return; }   // 새로 추가한 지갑은 현재 값이 기준선
+      var coins = {};
+      Object.keys(pv).forEach(function (c) { coins[c] = 1; });
+      Object.keys(nx).forEach(function (c) { coins[c] = 1; });
+      Object.keys(coins).forEach(function (coin) {
+        var a = num(pv[coin]), b = num(nx[coin]);
+        if (a === b) return;
+        var px = markOf(coin);
+        var side = (b !== 0 ? b : a) > 0 ? "long" : "short";
+        if (a !== 0 && b !== 0 && (a > 0) !== (b > 0)) {
+          /* 방향 전환: 기존 포지션 청산 + 반대 방향 신규 진입으로 나눠 기록 */
+          pushEvt(w, coin, a > 0 ? "long" : "short", "close", -a, px, 0);
+          pushEvt(w, coin, b > 0 ? "long" : "short", "open", b, px, b);
+          changed = true;
+          return;
+        }
+        var type = a === 0 ? "open" : (b === 0 ? "close" : (Math.abs(b) > Math.abs(a) ? "add" : "reduce"));
+        pushEvt(w, coin, side, type, b - a, px, b);
+        changed = true;
+      });
+    });
+    EV.base = next;
+    EV.baseAt = now;
+    if (changed) EV.events.sort(function (x, y) { return y.t - x.t; });
+    saveEvents(changed);
+    renderEvents();
+  }
+
+  function renderEvents() {
+    if (!el.evtList) return;
+    var list = EV.events.slice(0, EVT_VIEW);
+    if (!list.length) {
+      el.evtList.innerHTML = '<div class="empty">아직 기록된 변동이 없습니다. 포지션이 바뀌면 여기에 표시됩니다.</div>';
+    } else {
+      el.evtList.innerHTML = list.map(function (e) {
+        var sign = e.dSize > 0 ? "+" : e.dSize < 0 ? "−" : "";
+        var usd = fmtUsd(Math.abs(e.dUsd), { compact: Math.abs(e.dUsd) >= 1000 });
+        var after = (e.type === "add" || e.type === "reduce")
+          ? ' → ' + fmtSize(e.size) + " " + esc(e.coin) : "";
+        return '<div class="evt-row">' +
+          '<span class="evt-t">' + fmtEvtTime(e.t) + '</span>' +
+          '<span class="evt-w" title="' + esc(e.addr) + '">' + esc(e.label) + '</span>' +
+          '<span class="evt-coin">' + esc(e.coin) + '</span>' +
+          '<span><span class="evt-type ' + e.type + '">' + (EVT_LABEL[e.type] || e.type) + '</span></span>' +
+          '<span class="evt-side"><span class="side-pill ' + e.side + '">' +
+            (e.side === "long" ? "LONG" : "SHORT") + '</span></span>' +
+          '<span class="evt-d">' + sign + fmtSize(e.dSize) + " " + esc(e.coin) +
+            ' · <b>' + usd + '</b>' + after + '</span>' +
+          "</div>";
+      }).join("");
+    }
+    var n = EV.events.length;
+    el.evtSub.textContent = "5초 갱신마다 직전 스냅샷과 비교 · " + SCOPE_TEXT +
+      (n ? " · " + n + "건 기록" : "") +
+      (EV.baseAt ? " · 기준 " + fmtEvtTime(EV.baseAt) : "");
+  }
+
+  el.evtClear.addEventListener("click", function () {
+    EV.events = [];
+    saveEvents(true);
+    renderEvents();
+  });
 
   /* ───────────── render ───────────── */
   function render() {
@@ -902,6 +1209,9 @@
     el.biasLongPct.textContent = longPct.toFixed(1) + "% · " + fmtUsd(agg.longExp, { compact: true });
     el.biasShortPct.textContent = (100 - longPct).toFixed(1) + "% · " + fmtUsd(agg.shortExp, { compact: true });
     el.biasCount.textContent = agg.posCount + "개";
+    var scopePct = agg.allExp > 0 ? (totalExp / agg.allExp) * 100 : 0;
+    el.biasScope.textContent = scopePct.toFixed(1) + "% · " + fmtUsd(totalExp, { compact: true }) +
+      " / 전체 " + fmtUsd(agg.allExp, { compact: true }) + " (" + agg.allCount + "개 중 " + agg.posCount + "개)";
     var net = agg.longExp - agg.shortExp;
     el.biasNet.innerHTML = "순 노출 <b style='color:" + (net >= 0 ? "var(--long)" : "var(--short)") + "'>" +
       fmtUsd(net, { signed: true, compact: true }) + "</b> · " +
@@ -966,7 +1276,7 @@
   }
 
   function renderWhales() {
-    var shown = 0, total = 0;
+    var shown = 0, total = 0, visible = 0, hidden = 0;
     var html = wallets.map(function (w) {
       var d = cache[w.address];
       var head =
@@ -979,20 +1289,33 @@
         "</div>";
 
       if (!d) {
+        visible++;
         return '<div class="panel whale">' + head + '<div class="errline">불러오는 중…</div></div>';
       }
       if (!d.ok) {
+        visible++;
         return '<div class="panel whale">' + head +
           '<div class="errline">조회 실패: ' + esc(d.error || "알 수 없는 오류") + " (다음 갱신에 다시 시도합니다)</div></div>";
       }
 
+      var ps = positionsOf(d.state);
+      /* BTC·ETH 포지션이 0개면 카드만 숨김 — 요약·차트 집계는 그대로 둔다 */
+      if (hideEmpty && !ps.length) { hidden++; return ""; }
+      visible++;
+
+      var allPs = allPositionsOf(d.state);
       var ms = (d.state && d.state.marginSummary) || {};
       var accVal = num(ms.accountValue);
-      var ps = positionsOf(d.state);
       var upnl = sumUnrealized(d.state);
       var filtered = ps.filter(matchesFilter);
       total += ps.length;
       shown += filtered.length;
+
+      var scopeExp = 0, allExp = 0, k;
+      for (k = 0; k < ps.length; k++) scopeExp += ps[k].value;
+      for (k = 0; k < allPs.length; k++) allExp += allPs[k].value;
+      var share = allExp > 0 ? (scopeExp / allExp) * 100 : 0;
+      var others = allPs.length - ps.length;
 
       var fr = CH.fills[w.address];
       var fillLine = !fr ? "" :
@@ -1008,12 +1331,25 @@
         '<div class="ws"><div class="k">계좌가치</div><div class="v">' + fmtUsd(accVal, { compact: true }) + "</div></div>" +
         '<div class="ws"><div class="k">미실현 손익</div><div class="v ' + (upnl > 0 ? "pos" : upnl < 0 ? "neg" : "") + '">' +
         fmtUsd(upnl, { signed: true, compact: true }) + "</div></div>" +
-        '<div class="ws"><div class="k">포지션</div><div class="v">' + ps.length + "개</div></div>" +
+        '<div class="ws"><div class="k">전체 포지션</div><div class="v">' + allPs.length + "개</div></div>" +
         "</div></div>" + fillLine;
+
+      /* 전체 포지션 대비 BTC·ETH 개수·노출 비중 */
+      var scopeLine =
+        '<div class="whale-scope' + (ps.length ? "" : " none") + '">' +
+        '<div class="line">' +
+        '<span>전체 <b>' + allPs.length + '개</b> 중 <b>' + SCOPE_TEXT + ' ' + ps.length + '개</b></span>' +
+        '<span class="pct">노출 비중 <b>' + share.toFixed(1) + '%</b></span>' +
+        (others > 0 ? '<span>다른 코인 ' + others + '개 포함</span>' : '') +
+        "</div>" +
+        '<div class="bar" role="img" aria-label="BTC·ETH 노출 비중 ' + share.toFixed(1) + '%"><i style="width:' +
+        Math.max(0, Math.min(100, share)).toFixed(1) + '%"></i></div>' +
+        "</div>";
 
       var body;
       if (!ps.length) {
-        body = '<div class="empty">' + SCOPE_TEXT + ' 포지션이 없습니다.</div>';
+        body = '<div class="empty">' + SCOPE_TEXT + ' 포지션이 없습니다' +
+          (allPs.length ? " (다른 코인 " + allPs.length + "개 보유)" : "") + ".</div>";
       } else if (!filtered.length) {
         body = '<div class="empty">조건에 맞는 포지션이 없습니다 (전체 ' + ps.length + "개).</div>";
       } else {
@@ -1037,13 +1373,22 @@
           "<th>코인</th><th>방향</th><th>레버리지</th><th>포지션 규모</th><th>진입가</th><th>청산가</th><th>미실현 손익</th>" +
           "</tr></thead><tbody>" + rows + "</tbody></table>";
       }
-      return '<div class="panel whale">' + head + body + "</div>";
+      return '<div class="panel whale">' + head + scopeLine + body + "</div>";
     }).join("");
 
-    el.whaleList.innerHTML = html || '<div class="panel empty">추적 중인 지갑이 없습니다. 위에서 지갑을 추가해 주세요.</div>';
-    el.whaleSub.textContent = wallets.length + "개 지갑 · " + (filterSide === "all" ? "" : (filterSide === "long" ? "LONG " : "SHORT ")) +
+    if (html) el.whaleList.innerHTML = html;
+    else if (hidden) el.whaleList.innerHTML = '<div class="panel empty">BTC·ETH 포지션이 있는 지갑이 없습니다. 빈 지갑 ' + hidden + '곳을 숨겼습니다.</div>';
+    else el.whaleList.innerHTML = '<div class="panel empty">추적 중인 지갑이 없습니다. 위에서 지갑을 추가해 주세요.</div>';
+
+    var sub = wallets.length + "개 지갑";
+    if (hideEmpty && hidden) sub += " · " + visible + "곳 표시(빈 지갑 " + hidden + "곳 숨김)";
+    sub += " · " + (filterSide === "all" ? "" : (filterSide === "long" ? "LONG " : "SHORT ")) +
       shown + "/" + total + "개 포지션 표시";
+    el.whaleSub.textContent = sub;
     el.filterCount.textContent = "표시 " + shown + " / 전체 " + total;
+
+    el.hideEmptyBtn.setAttribute("aria-pressed", hideEmpty ? "true" : "false");
+    el.hideEmptyBtn.innerHTML = "빈 지갑 숨기기" + (hideEmpty && hidden ? " <b>" + hidden + "</b>" : "");
 
     Array.prototype.forEach.call(el.whaleList.querySelectorAll("[data-copy]"), function (btn) {
       btn.addEventListener("click", function () { copyText(btn.getAttribute("data-copy"), btn); });
@@ -1062,7 +1407,13 @@
         if (isNaN(idx)) return;
         var removed = wallets[idx];
         wallets.splice(idx, 1);
-        if (removed) delete cache[removed.address];
+        if (removed) {
+          delete cache[removed.address];
+          delete EV.base[removed.address];
+          delete EV.skip[removed.address];
+          saveEvents(true);
+          renderEvents();
+        }
         saveWallets();
         hint("추적에서 제외했습니다. 언제든 다시 추가할 수 있어요.", "");
         render();
@@ -1119,6 +1470,12 @@
     setStatus();
   });
 
+  el.hideEmptyBtn.addEventListener("click", function () {
+    hideEmpty = !hideEmpty;
+    saveHideEmpty();
+    render();
+  });
+
   Array.prototype.forEach.call(document.querySelectorAll("#sideSeg button"), function (b) {
     b.addEventListener("click", function () {
       filterSide = b.getAttribute("data-side");
@@ -1157,6 +1514,7 @@
     }
     var nick = el.newLabel.value.trim() || shortAddr(addr);
     wallets.push({ address: addr, label: nick, tag: "직접 추가" });
+    EV.skip[addr] = 1;          // 추가한 지갑의 기존 포지션을 '신규 진입'으로 기록하지 않음
     saveWallets();
     el.newAddr.value = "";
     el.newLabel.value = "";
@@ -1169,6 +1527,10 @@
   el.resetBtn.addEventListener("click", function () {
     wallets = DEFAULTS.slice();
     cache = {};
+    EV.base = {};               // 기본 목록으로 바꿨으니 기준선도 새로 잡음
+    EV.baseAt = 0;
+    EV.skip = {};
+    saveEvents(true);
     saveWallets();
     hint("기본 고래 10곳으로 되돌렸습니다.", "ok");
     render();
@@ -2025,6 +2387,7 @@
 
   /* ───────────── boot ───────────── */
   renderChips();
+  renderEvents();
   render();
   refresh();
   ticker = setInterval(tick, 1000);
