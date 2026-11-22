@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#0a0d12" />
 <link rel="preconnect" href="https://unpkg.com" crossorigin />
 <link rel="preconnect" href="https://api.hyperliquid.xyz" crossorigin />
-<meta name="description" content="하이퍼리퀴드 상위 고래 지갑 10곳의 실시간 포지션·미실현 손익과 BTC 캔들 차트·고래 롱/숏 비율 지표를 5초마다 갱신해서 보여주는 대시보드입니다." />
-<title>고래 포지션 모니터 · BTC 차트 · Hyperliquid 실시간</title>
+<meta name="description" content="하이퍼리퀴드 상위 고래 지갑 10곳의 BTC·ETH 포지션과 미실현 손익, BTC 캔들 차트·고래 롱/숏 비율 지표를 5초마다 갱신해서 보여주는 대시보드입니다." />
+<title>고래 포지션 모니터 · BTC·ETH · BTC 차트 · Hyperliquid 실시간</title>
 <style>
   :root{
     --bg:#0a0d12;
@@ -379,7 +379,7 @@
       <div class="logo">🐋</div>
       <div>
         <h1>고래 포지션 모니터</h1>
-        <p>Hyperliquid 고래 10곳 포지션 · BTC 차트 · 롱/숏 지표</p>
+        <p>Hyperliquid 고래 10곳 · BTC·ETH 포지션 · BTC 차트</p>
       </div>
     </div>
     <div class="top-actions">
@@ -406,7 +406,7 @@
       </div>
       <div class="ch-controls">
         <div class="seg mini" role="group" aria-label="롱 비율 기준">
-          <button type="button" data-mode="all" aria-pressed="true">전체 코인</button>
+          <button type="button" data-mode="all" aria-pressed="true">BTC+ETH</button>
           <button type="button" data-mode="btc" aria-pressed="false">BTC</button>
         </div>
         <div class="seg mini" role="group" aria-label="차트 주기">
@@ -418,7 +418,7 @@
     </div>
     <div class="ch-legend">
       <span class="k"><span class="swatch" style="background:var(--accent)"></span>
-        <span id="chModeLabel">전체 코인 롱 비율</span> <b id="chRatio">—</b></span>
+        <span id="chModeLabel">BTC·ETH 롱 비율</span> <b id="chRatio">—</b></span>
       <span class="k">기준선 50%</span>
       <span class="sep"></span>
       <span class="k">순노출 <b id="chNetVal">—</b></span>
@@ -450,7 +450,7 @@
     <div class="stat panel">
       <div class="k">총 미실현 손익</div>
       <div class="v" id="sumPnl">—</div>
-      <div class="s" id="sumPnlSub">전 포지션 합산</div>
+      <div class="s" id="sumPnlSub">BTC·ETH 포지션 합산</div>
     </div>
   </section>
 
@@ -473,7 +473,7 @@
   <!-- 코인별 집계 -->
   <div class="sec-head">
     <h2>코인별 롱 · 숏 집계</h2>
-    <span id="coinSub">전체 고래 합산</span>
+    <span id="coinSub">BTC·ETH 고래 합산</span>
   </div>
   <div class="panel coins" id="coinList">
     <div class="empty">데이터를 불러오는 중입니다…</div>
@@ -517,6 +517,7 @@
   <footer>
     <div><b>데이터 출처</b> Hyperliquid 공개 API (<code>api.hyperliquid.xyz/info</code>) ·
       차트는 TradingView Lightweight Charts · 5초마다 자동 갱신</div>
+    <div><b>표시 범위</b> 포지션 표·요약·코인 집계·차트 지표는 <b>BTC·ETH</b> 포지션만 집계합니다(다른 코인 포지션은 표시하지 않음).</div>
     <div><b>차트</b> 위 패널은 BTC 무기한(1시간·15분·4시간) 캔들과 고래들의 롱 비율(포지션 평가액 비중)입니다.
       과거 지표는 각 지갑의 <code>userFillsByTime</code> 체결을 현재 포지션에서 되돌려 복원하고,
       그 이전 구간은 현재 포지션을 그대로 적용한 추정값입니다. 체결 내역은 지갑마다 2,000건씩 최대 5페이지(10,000건)까지
@@ -572,6 +573,14 @@
   var lastUpdate = null;
   var lastError = null;
   var ticker = null;
+
+  /* ── 표시 범위: BTC·ETH 포지션만 ──
+     포지션 표·요약·코인 집계·차트 지표가 모두 이 범위를 따릅니다. */
+  var SCOPE_COINS = ["BTC", "ETH"];
+  var SCOPE_TEXT = "BTC·ETH";
+  function inScope(coin) {
+    return SCOPE_COINS.indexOf(String(coin || "").toUpperCase()) !== -1;
+  }
 
   var $ = function (id) { return document.getElementById(id); };
   var el = {
@@ -721,6 +730,7 @@
       var item = arr[i] || {};
       var p = item.position || item;
       if (!p || !p.coin) continue;
+      if (!inScope(p.coin)) continue;      // BTC·ETH 외 코인 포지션 제외
       var size = num(p.szi);
       if (size === 0) continue;
       var isLong = size > 0;
@@ -750,6 +760,7 @@
     var arr = (state && state.assetPositions) || [];
     for (var i = 0; i < arr.length; i++) {
       var p = (arr[i] && arr[i].position) || arr[i] || {};
+      if (!inScope(p.coin)) continue;      // BTC·ETH 외 코인 제외
       t += num(p.unrealizedPnl);
     }
     return t;
@@ -911,7 +922,7 @@
       if (filterSide === "short" && c.short <= 0) return false;
       return true;
     });
-    el.coinSub.textContent = "전체 고래 합산" + (filterCoin ? " · “" + filterCoin + "” 필터" : "") + " · " + list.length + "개 코인";
+    el.coinSub.textContent = SCOPE_TEXT + " 고래 합산" + (filterCoin ? " · “" + filterCoin + "” 필터" : "") + " · " + list.length + "개 코인";
     if (!list.length) {
       el.coinList.innerHTML = '<div class="empty">조건에 맞는 코인이 없습니다.</div>';
       return;
@@ -1002,7 +1013,7 @@
 
       var body;
       if (!ps.length) {
-        body = '<div class="empty">현재 열려 있는 포지션이 없습니다.</div>';
+        body = '<div class="empty">' + SCOPE_TEXT + ' 포지션이 없습니다.</div>';
       } else if (!filtered.length) {
         body = '<div class="empty">조건에 맞는 포지션이 없습니다 (전체 ' + ps.length + "개).</div>";
       } else {
@@ -1187,7 +1198,7 @@
 
   /* ───────────── BTC 차트 + 고래 롱/숏 지표 ───────────── */
   var LWC_SRC = "https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js";
-  var HIST_KEY = "hl_whale_chart_hist_v1";
+  var HIST_KEY = "hl_whale_chart_hist_v2";   // v2: BTC·ETH만 집계한 스냅샷(구버전 전체 코인 값과 섞지 않음)
   var HIST_MAX = 3000;
   var FILL_TTL = 10 * 60 * 1000;      // 확장 조회(지갑당 최대 5페이지) 부담을 줄이려 10분 캐시
   var MAX_FILL_PAGES = 5;             // 지갑당 최대 5페이지 × 2,000건 = 10,000건
@@ -1426,7 +1437,7 @@
     for (var i = 0; i < arr.length; i++) {
       var p = (arr[i] && arr[i].position) || arr[i] || {};
       var s = num(p.szi);
-      if (s && p.coin) out[p.coin] = s;
+      if (s && p.coin && inScope(p.coin)) out[p.coin] = s;   // BTC·ETH만 복원 대상
     }
     return out;
   }
@@ -1469,7 +1480,7 @@
       if (mode === "btc") {
         coins = ["BTC"];
       } else {
-        coins = rec.coinList.slice();
+        coins = rec.coinList.filter(inScope);      // 전체 모드 = BTC·ETH 합산
         var have = {};
         for (k = 0; k < coins.length; k++) have[coins[k]] = 1;
         for (var c in szi) {
@@ -1626,7 +1637,7 @@
     for (var i = CH.points.length - 1; i >= 0; i--) {
       if (CH.points[i].r != null && isFinite(CH.points[i].r)) { last = CH.points[i]; break; }
     }
-    chel.modeLabel.textContent = CH.mode === "btc" ? "BTC 롱 비율" : "전체 코인 롱 비율";
+    chel.modeLabel.textContent = CH.mode === "btc" ? "BTC 롱 비율" : SCOPE_TEXT + " 롱 비율";
     chel.ratio.textContent = last ? last.r.toFixed(1) + "%" : "—";
     chel.netVal.textContent = last ? fmtUsd(last.net, { signed: true, compact: true }) : "—";
     chel.netVal.style.color = last ? (last.net >= 0 ? "var(--long)" : "var(--short)") : "";
@@ -1668,7 +1679,7 @@
       (fs.capped ? " · <b>" + fs.capped + "곳</b>은 10,000건(2,000건×5페이지) 한도" : "") +
       (fs.failed ? " · " + fs.failed + "곳 조회 실패(다음 새로고침에 재시도)" : "") +
       (CH.progress ? " · " + CH.progress + " 지갑 확장 조회 중…" : "");
-    var line3 = "지표는 추적 중인 고래들의 롱·숏 포지션 <b>평가액 비중</b>입니다. 5초마다 현재 포지션 스냅샷을 " +
+    var line3 = "지표는 추적 중인 고래들의 " + SCOPE_TEXT + " 롱·숏 포지션 <b>평가액 비중</b>입니다. 5초마다 현재 포지션 스냅샷을 " +
       "기록해 이 브라우저에 누적합니다(최근 " + CH.snap.length.toLocaleString("en-US") + "점).";
     chel.foot.innerHTML = (line1 ? line1 + "<br>" : "") + line2 + "<br>" + line3;
   }
