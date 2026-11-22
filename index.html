@@ -1156,7 +1156,8 @@
       el.evtList.innerHTML = '<div class="empty">아직 기록된 변동이 없습니다. 포지션이 바뀌면 여기에 표시됩니다.</div>';
     } else {
       el.evtList.innerHTML = list.map(function (e) {
-        var sign = e.dSize > 0 ? "+" : e.dSize < 0 ? "−" : "";
+        /* 부호는 포지션 크기가 아니라 익스포저 변화 방향으로 보여줍니다(숏 증액 = +). */
+        var sign = (e.type === "open" || e.type === "add") ? "+" : "−";
         var usd = fmtUsd(Math.abs(e.dUsd), { compact: Math.abs(e.dUsd) >= 1000 });
         var after = (e.type === "add" || e.type === "reduce")
           ? ' → ' + fmtSize(e.size) + " " + esc(e.coin) : "";
