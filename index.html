@@ -985,6 +985,7 @@
       render();
       setStatus();
       if (!CH.booted) bootChart();
+      else if (manual && CH.ready && !CH.candles.length && !CH.loading) chartReload(); // 차트 로드가 실패한 뒤 '새로고침'을 누르면 캔들부터 다시 시도
       else onRefresh();
     }).catch(function (err) {
       loading = false;
