@@ -2429,7 +2429,11 @@
     var ok = d && d.ok;
     var ms = ok ? ((d.state && d.state.marginSummary) || {}) : {};
     var accVal = ok ? num(ms.accountValue) : null;
-    var upnl = ok ? sumUnrealized(d.state) : null;
+    /* 스윙 카드의 미실현 손익은 전체 코인 합계라, 같은 상세 창에서도 숫자가 어긋나지 않게 맞춥니다.
+       (20곳 고래는 지금처럼 BTC·ETH 범위 그대로입니다.) */
+    var swOnly = null;
+    for (var sk = 0; sk < SWING.length; sk++) if (SWING[sk].address === addr) { swOnly = SWING[sk]; break; }
+    var upnl = ok ? (swOnly ? swingPnl(d) : sumUnrealized(d.state)) : null;
     var wd = ok ? num(d.state.withdrawable) : null;
     var ri = rankInfo(addr);
     if (el.wmRank) {
