@@ -1836,7 +1836,7 @@
         (fr.failed ? '<span class="warn">체결 조회 실패</span>' :
           '<span>체결 <b>' + (fr.count || 0).toLocaleString("en-US") + '건</b></span>' +
           (fr.coveredFrom ? '<span>지표 복원 <b>' + fmtHours(Date.now() - fr.coveredFrom) + ' 전</b>부터</span>' : '<span>체결 없음</span>') +
-          (fr.capped ? '<span class="cap">2,000건 창 한도</span>' : '')) +
+          (fr.capped ? '<span class="cap">과거 확장 한도</span>' : '')) +
         "</div>";
 
       var head = headOpen +
@@ -2560,7 +2560,7 @@
   var HIST_MAX = 3000;
   var FILL_TTL = 10 * 60 * 1000;      // 체결 사슬 조회는 10분 캐시
   var FILL_PAGE = 2000;               // userFills / userFillsByTime 1회 최대 2,000건
-  var FILL_MAX_REQ = 4;               // 지갑당 체결 요청 상한(최근 1회 + 과거 확장 3회)
+  var FILL_MAX_REQ = 6;               // 지갑당 체결 요청 상한(최근 1회 + 과거 확장 5회)
   var FILL_GAP_MS = 330;              // 체결 요청 사이 간격(레이트리밋 완화)
   var RIGHT_OFFSET = 12;              // 현재 캔들 오른쪽 여백(봉)
 
@@ -3112,7 +3112,7 @@
     var line1 = parts.join(" · ");
     var line2 = "지갑 <b>" + fs.got + "/" + wallets.length + "곳</b> 체결 " + fs.total.toLocaleString("en-US") + "건 조회" +
       (fs.deep != null ? " · 복원 최장 <b>" + fmtHours(Date.now() - fs.deep) + " 전</b>" : "") +
-      (fs.capped ? " · <b>" + fs.capped + "곳</b>은 2,000건 창 한도에서 멈춤" : "") +
+      (fs.capped ? " · <b>" + fs.capped + "곳</b>은 과거 확장 한도(" + FILL_MAX_REQ + "요청)에서 멈춤" : "") +
       (fs.failed ? " · " + fs.failed + "곳 조회 실패(다음 새로고침에 재시도)" : "") +
       (CH.progress ? " · " + CH.progress + " 지갑 확장 조회 중…" : "");
     var line3 = "<b>API 한도</b> candleSnapshot은 1회 최대 5,000봉이고 보관도 봉당 5,000개 수준입니다" +
@@ -3315,7 +3315,7 @@
 
       /* 일부 지갑만 복원된 구간 — 같은 축에 점선으로만 그립니다(면 채움 없음) */
       chChart.ratioPart = chChart.bottom.addLineSeries({
-        color: "rgba(91,140,255,.62)", lineWidth: 2, lineStyle: 2,
+        color: "rgba(91,140,255,.85)", lineWidth: 2, lineStyle: 2,
         priceFormat: { type: "price", precision: 1, minMove: 0.1 },
         priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
         autoscaleInfoProvider: function () { return { priceRange: { minValue: 0, maxValue: 100 } }; }
