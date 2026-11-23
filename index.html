@@ -3666,6 +3666,9 @@
       setIndH(clampInd(h, pool), false, pool);
     }
 
+    /* 마우스 기본 포커스 이동(preventDefault 뒤 mousedown 기본 동작)을 막아 키보드 조절이 이어지게 함 */
+    splitEl.addEventListener("mousedown", function (e) { e.preventDefault(); });
+
     splitEl.addEventListener("pointerdown", function (e) {
       if (e.pointerType === "mouse" && e.button !== 0) return;
       e.preventDefault();
@@ -3700,6 +3703,7 @@
       splitEl.classList.remove("is-drag");
       document.body.classList.remove("pane-dragging");
       try { splitEl.releasePointerCapture(id); } catch (err) {}
+      try { splitEl.focus({ preventScroll: true }); } catch (err) {}
       /* 마지막 위치를 확정해 저장 */
       setIndH(clampInd(chel.indChart.clientHeight, pool), true, pool);
     }
