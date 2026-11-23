@@ -128,6 +128,7 @@
   .bias-bar .l,.bias-bar .s{transition:width .5s cubic-bezier(.4,0,.2,1)}
   .bias-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:9px}
   .bias-legend i{font-style:normal;font-variant-numeric:tabular-nums;color:var(--text)}
+  .bias-legend .scope-all{display:block;color:var(--muted-2);font-size:10.5px;margin-top:2px}
 
   /* ── coin aggregation ──────────────────────────── */
   .coins{padding:6px 4px}
@@ -1323,8 +1324,8 @@
     el.biasShortPct.textContent = (100 - longPct).toFixed(1) + "% · " + fmtUsd(agg.shortExp, { compact: true });
     el.biasCount.textContent = agg.posCount + "개";
     var scopePct = agg.allExp > 0 ? (totalExp / agg.allExp) * 100 : 0;
-    el.biasScope.textContent = scopePct.toFixed(1) + "% · " + fmtUsd(totalExp, { compact: true }) +
-      " / 전체 " + fmtUsd(agg.allExp, { compact: true }) + " (" + agg.allCount + "개 중 " + agg.posCount + "개)";
+    el.biasScope.innerHTML = scopePct.toFixed(1) + "% · " + fmtUsd(totalExp, { compact: true }) +
+      '<span class="scope-all"> / 전체 ' + fmtUsd(agg.allExp, { compact: true }) + " (" + agg.allCount + "개 중 " + agg.posCount + "개)</span>";
     var net = agg.longExp - agg.shortExp;
     el.biasNet.innerHTML = "순 노출 <b style='color:" + (net >= 0 ? "var(--long)" : "var(--short)") + "'>" +
       fmtUsd(net, { signed: true, compact: true }) + "</b> · " +
