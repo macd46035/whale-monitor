@@ -320,8 +320,11 @@
     background:rgba(91,140,255,.13);border:1px solid rgba(91,140,255,.25);
     padding:2px 7px;border-radius:999px;
   }
-  .swing-kpi{display:flex;gap:15px;margin-left:auto;flex-wrap:wrap}
+  .swing-kpi{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
   .swing-kpi .ws .v{font-size:13.5px}
+  .swing-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:5px;min-width:0}
+  .swing-meta code{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1px}
+  .swing-meta .sns{margin-top:0}
   .swing-body{padding:2px 0 0}
   .srow{
     display:grid;grid-template-columns:minmax(58px,1fr) 52px minmax(56px,.95fr) minmax(58px,.95fr) minmax(66px,1.05fr);
@@ -2828,7 +2831,7 @@
             '<span class="swing-tag" title="1년 이상 운용 트랙레코드">' + esc(w.tag) + '</span>' +
             (d && d.ok && d.fail ? '<span class="swing-tag" style="color:var(--warn);border-color:rgba(255,184,77,.35);background:rgba(255,184,77,.12)">지연 ' + d.fail + '</span>' : '') +
           '</div>' +
-          '<span class="addr"><code>' + addrAttr + '</code>' +
+          '<span class="swing-meta"><code title="' + addrAttr + '">' + esc(shortAddr(w.address)) + '</code>' +
             '<button class="copy" type="button" data-swing-copy="' + addrAttr + '">복사</button>' +
             snsHtml(w.address) + '</span>' +
         '</div>' + kpi +
