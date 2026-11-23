@@ -2076,6 +2076,7 @@
         var removed = wallets[idx];
         wallets.splice(idx, 1);
         if (removed) {
+          if (WM.addr === removed.address) closeWhale();
           delete cache[removed.address];
           delete EV.base[removed.address];
           delete EV.skip[removed.address];
