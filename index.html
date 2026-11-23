@@ -712,7 +712,7 @@
     .chart-head{padding:14px 18px 12px}
     .ch-price{font-size:20px}
     .ch-legend{padding:9px 18px;font-size:12px;gap:16px}
-    #priceChart{height:auto;flex:1 1 auto;min-height:300px}
+    #priceChart{height:auto;flex:1 1 auto;min-height:180px}
     .chartpanel{--ind-h:216px}
     .ch-foot{padding:10px 18px 12px;font-size:11.5px}
 
@@ -3534,6 +3534,7 @@
       if (pw > 0 && ph > 0 && chChart.top) chChart.top.applyOptions({ width: pw, height: ph });
       if (iw > 0 && ih > 0 && chChart.bottom) chChart.bottom.applyOptions({ width: iw, height: ih });
     } catch (e) {}
+    paintSplit();   /* 분할선의 안내 문구·aria 값도 현재 높이에 맞춤 */
   }
   var sizeTimer = null;
   window.addEventListener("resize", function () {
@@ -3589,21 +3590,39 @@
     return Math.min(r.max, Math.max(r.min, h));
   }
 
+  var splitLast = { h: -1, max: -1 };
   function paintSplit() {
     if (!splitEl || !chel.indChart) return;
-    var h = chel.indChart.clientHeight;
+    var h = chel.indChart.clientHeight, m = indRange().max;
+    if (h === splitLast.h && m === splitLast.max) return;   /* 같은 값이면 DOM을 건드리지 않음 */
+    splitLast.h = h; splitLast.max = m;
     try { splitEl.setAttribute("aria-valuenow", String(h)); } catch (e) {}
-    try { splitEl.setAttribute("aria-valuemax", String(indRange().max)); } catch (e) {}
+    try { splitEl.setAttribute("aria-valuemax", String(m)); } catch (e) {}
     if (splitTip) splitTip.innerHTML = "지표 <b>" + h + "px</b> · 더블클릭 초기화";
   }
 
-  /* h = null 이면 화면 폭별 기본값으로 되돌립니다 */
-  function setIndH(h, persist) {
+  function chartPool() { return chel.priceChart.clientHeight + chel.indChart.clientHeight; }
+
+  /* 가격 차트 높이를 사용자의 드래그 값에 맞춰 직접 지정(데스크톱에서 카드 높이를 고정) */
+  function clearPriceH() { try { chel.priceChart.style.removeProperty("height"); } catch (e) {} }
+
+  /* h = null 이면 화면 폭별 기본값으로 되돌립니다.
+     pool = 드래그 시작 시점의 (가격 차트 + 지표 패널) 높이 합 — 데스크톱에서 카드 높이가
+     바뀌지 않도록 가격 차트 높이를 그 합에서 지표 패널 높이를 뺀 값으로 맞춥니다. */
+  function setIndH(h, persist, pool) {
     if (!chartPanel) return;
     if (h == null) {
       chartPanel.style.removeProperty("--ind-h");
+      clearPriceH();
     } else {
-      chartPanel.style.setProperty("--ind-h", Math.round(h) + "px");
+      var v = Math.round(h);
+      chartPanel.style.setProperty("--ind-h", v + "px");
+      if (isDeskLayout() && pool != null) {
+        var pv = Math.max(priceFloor(), Math.round(pool) - v);
+        chel.priceChart.style.height = pv + "px";
+      } else {
+        clearPriceH();
+      }
     }
     if (persist) {
       indSavedH = h == null ? null : Math.round(h);
@@ -3622,7 +3641,7 @@
     try { saved = parseInt(localStorage.getItem(IND_H_KEY), 10); } catch (e) {}
     if (!isFinite(saved) || saved <= 0) saved = null;
     indSavedH = saved;
-    if (saved != null) setIndH(clampInd(saved), false);
+    if (saved != null) { var p0 = chartPool(); setIndH(clampInd(saved, p0), false, p0); }
     else paintSplit();
 
     var dg = null, raf = 0, pend = null;
@@ -3631,7 +3650,8 @@
       raf = 0;
       if (pend == null) return;
       var h = pend; pend = null;
-      setIndH(clampInd(h, dg ? dg.pool : null), false);
+      var pool = dg ? dg.pool : null;
+      setIndH(clampInd(h, pool), false, pool);
     }
 
     splitEl.addEventListener("pointerdown", function (e) {
@@ -3659,7 +3679,7 @@
 
     function endDrag(e) {
       if (!dg || (e && e.pointerId != null && e.pointerId !== dg.id)) return;
-      var id = dg.id;
+      var id = dg.id, pool = dg.pool;
       dg = null;
       if (raf) { try { cancelAnimationFrame(raf); } catch (err) {} raf = 0; }
       pend = null;
@@ -3667,7 +3687,7 @@
       document.body.classList.remove("pane-dragging");
       try { splitEl.releasePointerCapture(id); } catch (err) {}
       /* 마지막 위치를 확정해 저장 */
-      setIndH(clampInd(chel.indChart.clientHeight), true);
+      setIndH(clampInd(chel.indChart.clientHeight, pool), true, pool);
     }
     splitEl.addEventListener("pointerup", endDrag);
     splitEl.addEventListener("pointercancel", endDrag);
@@ -3677,7 +3697,6 @@
       e.preventDefault();
       setIndH(null, true);
     });
-
     /* 키보드: ↑/↓ 16px, PageUp/PageDown 48px, Home = 기본값 */
     splitEl.addEventListener("keydown", function (e) {
       var k = e.key, cur = chel.indChart.clientHeight, next = null;
@@ -3688,7 +3707,8 @@
       else if (k === "Home" || k === "0") { e.preventDefault(); setIndH(null, true); return; }
       if (next == null) return;
       e.preventDefault();
-      setIndH(clampInd(next, chel.priceChart.clientHeight + chel.indChart.clientHeight), true);
+      var pool = chartPool();
+      setIndH(clampInd(next, pool), true, pool);
     });
 
     /* 창 폭이 바뀌면 저장값을 현재 화면 기준으로 다시 맞춥니다 */
@@ -3696,8 +3716,11 @@
     window.addEventListener("resize", function () {
       clearTimeout(reTimer);
       reTimer = setTimeout(function () {
-        if (indSavedH != null) setIndH(clampInd(indSavedH), false);
-        else paintSplit();
+        if (indSavedH != null) {
+          clearPriceH();                       /* 먼저 CSS 레이아웃으로 되돌린 뒤 새 기준값을 측정 */
+          var pool = chartPool();
+          setIndH(clampInd(indSavedH, pool), false, pool);
+        } else { clearPriceH(); paintSplit(); }
       }, 180);
     });
   })();
