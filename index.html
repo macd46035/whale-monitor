@@ -774,6 +774,20 @@
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important}
   }
+  /* ── 지갑 SNS 배지 ── */
+  .sns{display:inline-flex;align-items:center;gap:5px;margin-top:5px;font-size:10.5px;color:var(--muted-2);
+    text-decoration:none;border:1px solid var(--line-soft);border-radius:999px;padding:2px 8px;
+    transition:color .15s,border-color .15s,background .15s;white-space:nowrap}
+  .sns:hover{color:#cfe0ff;border-color:#2b3a50;background:rgba(91,140,255,.08)}
+  .sns.x{color:#a9c0ff;border-color:rgba(91,140,255,.45);background:rgba(91,140,255,.10);font-weight:600}
+  .sns.x:hover{background:rgba(91,140,255,.2)}
+  .sns .x-i{font-weight:800;font-size:11px;line-height:1}
+  .wm-sns{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+  .wf-tabs{margin-left:auto}
+  .wf-table{max-height:340px;overflow:auto}
+  .wf-table table{font-variant-numeric:tabular-nums}
+  .wf-table td.wf-t{white-space:nowrap;color:var(--muted-2);font-size:11.5px}
+  @media (max-width:720px){.wf-table{max-height:300px}}
 </style>
 </head>
 <body>
@@ -986,7 +1000,7 @@
 
   <footer>
     <div><b>데이터 출처</b> Hyperliquid 공개 API (<code>api.hyperliquid.xyz/info</code>) ·
-      차트는 TradingView Lightweight Charts · 5초마다 자동 갱신</div>
+      차트는 TradingView Lightweight Charts · 지갑 20곳을 5초마다 갱신(요청은 0.12초 간격으로 분산)</div>
     <div><b>롱·숏 집계</b> 방향 비중 패널은 두 기준을 나누어 보여줍니다. ① <b>포지션 사이즈(익스포저)</b>는 BTC·ETH 포지션 평가액 합산 비중이고,
       ② <b>계좌 수(지갑)</b>는 각 지갑의 BTC·ETH 순노출(롱 평가액 − 숏 평가액) 부호를 기준으로 셀니다. 한 지갑이 롱·숏을 함께 보유한 경우도 있어
       '롱 포지션 보유 / 숏 보유' 곳수를 함께 표기합니다. 코인별 집계의 막대도 사이즈 기준이며, 계좌 수는 숫자로 따로 표기합니다.</div>
@@ -1007,6 +1021,12 @@
       주문이 많은 지갑은 몇 분~몇 시간만 복원되며, 화면을 열어 둔 동안 5초마다 기록한 현재 포지션 스냅샷이 앞으로 누적됩니다.</div>
     <div><b>기준</b> 계좌가치는 <code>marginSummary.accountValue</code>, 익스포저는 포지션 평가액(절대값) 합산입니다. 교차 마진 계정은 청산가가 매우 멀게 계산되어 “원거리”로 표시됩니다.</div>
     <div><b>주의</b> 온체인 지갑 데이터는 실시간으로 바뀌며, 같은 주소가 여러 전략·봇을 함께 돌릴 수 있습니다. 투자 판단의 참고용으로만 사용하세요.</div>
+      <div><b>지갑 SNS</b> 각 지갑 카드와 상세 창에는 공개된 X/SNS 계정이 표시됩니다. 계정 주인이 하이퍼리퀴드 리더보드에
+      <code>x.com/…</code> 형태로 직접 공개한 경우에만 <b>𝕏</b> 링크를 만들고, 확인되지 않은 지갑은 <b>SNS 미확인</b>으로 두고
+      <a href="https://hypurrscan.io" target="_blank" rel="noopener noreferrer">Hypurrscan</a>에서 직접 확인할 수 있게 했습니다.</div>
+    <div><b>1시간 스냅샷</b> GitHub Actions(<code>.github/workflows/snapshot.yml</code>)가 매시 정각에 지갑 20곳의 BTC·ETH 롱/숏 노출을
+      <code>data/snapshots.json</code>에 기록합니다. 대시보드는 이 파일을 읽어, 체결 복원이 닿지 않는 구간을 그 시각에 실제로 조회한 값으로 채웁니다
+      (전 지갑이 조회된 스냅샷은 실선, 일부만 조회되면 점선).</div>
   </footer>
 </div>
 
@@ -1024,6 +1044,7 @@
         <div class="wm-addr-row">
           <code id="wmAddr"></code>
           <button class="copy" id="wmCopy" type="button">복사</button>
+          <span class="wm-sns" id="wmSns"></span>
         </div>
       </div>
       <div class="wm-head-stats" id="wmHeadStats"></div>
@@ -1063,32 +1084,49 @@
 
   var API = "https://api.hyperliquid.xyz/info";
   var REFRESH_MS = 5000;
-  var LS_KEY = "hl_whale_monitor_wallets_v3";
+  var RQ_GAP_MS = 120;      // 지갑 조회를 0.12초 간격으로 흩어 429를 줄입니다(20곳 대응)
+  var LS_KEY = "hl_whale_monitor_wallets_v4";
+  var LS_KEY_V3 = "hl_whale_monitor_wallets_v3";
   var LS_KEY_V2 = "hl_whale_monitor_wallets_v2";
   var LS_KEY_V1 = "hl_whale_monitor_wallets_v1";
 
-  /* 리더보드 누적 수익 기준 상위 고래 10곳.
+  /* 리더보드 누적 수익 기준 상위 고래 20곳.
      2026-11-23 확인: 0x5b5d…c060 · 0xb83d…6e36 은 계좌가치 $0·포지션 없음,
      0xd475…1a91 은 UNI·HYPE 만 보유하고 BTC·ETH 포지션이 0개여서 세 곳을
-     아래 활성 BTC·ETH 고래(리더보드 누적 수익·24시간 체결·현재 BTC/ETH 노출 확인)로 교체했습니다. */
+     아래 활성 BTC·ETH 고래(리더보드 누적 수익·24시간 체결·현재 BTC/ETH 노출 확인)로 교체했습니다.
+     2026-11-23 교체: x.com/SilkBtc · NAKED SHORTS ONLY · 0x7dac…f410 → 0x64b7…9da9 · 0xfc27…9d9d · 0x92cb…859c
+     같은 날 10곳을 더해 20곳으로 확장했습니다(모두 하이퍼리퀴드 리더보드·API로 계좌가치와 BTC/ETH 노출 확인). */
   var DEFAULTS = [
     { address: "0xecb63caa47c7c4e77f60f1ce858cf28dc2b82b00", label: "0xecb6…2b00", tag: "누적 +$230.4M" },
     { address: "0x7fdafde5cfb5465924316eced2d3715494c517d1", label: "BobbyBigSize", tag: "누적 +$173.8M" },
-    { address: "0x880ac484a1743862989a441d6d867238c7aa311c", label: "x.com/SilkBtc", tag: "누적 +$123.3M" },
+    { address: "0x64b766b07362405a9cc19c2226490f3015929da9", label: "0x64b7…9da9", tag: "계좌 $34.3M · BTC/ETH $87.9M" },
     { address: "0x45d26f28196d226497130c4bac709d808fed4029", label: "0x45d2…4029", tag: "누적 +$94.7M" },
-    { address: "0xa312114b5795dff9b8db50474dd57701aa78ad1e", label: "NAKED SHORTS ONLY", tag: "누적 +$93.8M" },
+    { address: "0xfc27136e42af1732ddc9ce2605ea9bff1b959d9d", label: "0xfc27…9d9d", tag: "계좌 $41.0M · 누적 +$40.6M" },
     { address: "0x8af700ba841f30e0a3fcb0ee4c4a9d223e1efa05", label: "0x8af7…fa05", tag: "누적 +$74.8M" },
-    { address: "0x7dacca323e44f168494c779bb5e7483c468ef410", label: "0x7dac…f410", tag: "누적 +$62.3M" },
+    { address: "0x92cbb22a9b9fc01da9914c9b39ed904dd61b859c", label: "0x92cb…859c", tag: "계좌 $12.5M · 24h $14.1M" },
     { address: "0x023a3d058020fb76cca98f01b3c48c8938a22355", label: "0x023a…2355", tag: "누적 +$59.4M" },
     { address: "0xfc667adba8d4837586078f4fdcdc29804337ca06", label: "0xfc66…ca06", tag: "누적 +$54.6M" },
-    { address: "0xdf954bbe619273a56e0cfa90dad8382195dc7d72", label: "0xdf95…7d72", tag: "누적 +$33.0M" }
+    { address: "0xdf954bbe619273a56e0cfa90dad8382195dc7d72", label: "0xdf95…7d72", tag: "누적 +$33.0M" },
+    { address: "0x519c721de735f7c9e6146d167852e60d60496a47", label: "0x519c…6a47", tag: "계좌 $18.2M · 누적 +$11.0M" },
+    { address: "0x10e14ba2d77263543be1bdb2851b0933ddf4f4bd", label: "0x10e1…f4bd", tag: "계좌 $17.7M · 누적 +$5.4M" },
+    { address: "0x77eeda199553e33b246e4b4666849b9ad0972902", label: "0x77ee…2902", tag: "계좌 $13.9M · BTC/ETH $19.3M" },
+    { address: "0x58b27998b4ff896949d5f57466b259e50ee211f3", label: "0x58b2…11f3", tag: "계좌 $10.1M · 누적 +$2.5M" },
+    { address: "0xfe7ce058edc7cfcde9ef8262ba51f8d4796ab7ae", label: "0xfe7c…b7ae", tag: "계좌 $43.2M · 누적 +$29.4M" },
+    { address: "0xca4903c207a0df58bf37d4bc8bbc5210726f53c8", label: "0xca49…53c8", tag: "계좌 $16.1M · BTC/ETH $42.8M" },
+    { address: "0xc926ddba8b7617dbc65712f20cf8e1b58b8598d3", label: "0xc926…98d3", tag: "계좌 $26.8M · 누적 +$22.0M" },
+    { address: "0xe867fbdad3291530e41530301ecb77693850c78e", label: "0xe867…c78e", tag: "계좌 $68.4M · 누적 +$44.8M" },
+    { address: "0x960b6c2c4b1498681b8422eb572a8b3a6aa3f0fc", label: "0x960b…f0fc", tag: "계좌 $13.0M · BTC/ETH $1.6M" },
+    { address: "0xec85bc052ec5b6d6cb2b40f5caa45e39b61a77fe", label: "0xec85…77fe", tag: "계좌 $12.2M · 24h $9.5M" }
   ];
 
   /* 교체된 기본 지갑 → 새 기본 고래 (기존 방문자의 localStorage를 옮길 때 사용) */
   var REPLACED = {
     "0x5b5d51203a0f9079f8aeb098a6523a13f298c060": "0x023a3d058020fb76cca98f01b3c48c8938a22355",
     "0xb83de012dba672c76a7dbbbf3e459cb59d7d6e36": "0xfc667adba8d4837586078f4fdcdc29804337ca06",
-    "0xd47587702a91731dc1089b5db0932cf820151a91": "0xdf954bbe619273a56e0cfa90dad8382195dc7d72"
+    "0xd47587702a91731dc1089b5db0932cf820151a91": "0xdf954bbe619273a56e0cfa90dad8382195dc7d72",
+    "0x880ac484a1743862989a441d6d867238c7aa311c": "0x64b766b07362405a9cc19c2226490f3015929da9",
+    "0xa312114b5795dff9b8db50474dd57701aa78ad1e": "0xfc27136e42af1732ddc9ce2605ea9bff1b959d9d",
+    "0x7dacca323e44f168494c779bb5e7483c468ef410": "0x92cbb22a9b9fc01da9914c9b39ed904dd61b859c",
   };
   var OLD_DEFAULT_ADDRS = {};
   ["0x5b5d51203a0f9079f8aeb098a6523a13f298c060", "0xb83de012dba672c76a7dbbbf3e459cb59d7d6e36",
@@ -1155,7 +1193,7 @@
     evtList: $("evtList"), evtSub: $("evtSub"), evtClear: $("evtClear"),
     wm: $("whaleModal"), wmTitle: $("wmTitle"), wmTag: $("wmTag"), wmAddr: $("wmAddr"),
     wmCopy: $("wmCopy"), wmClose: $("wmClose"), wmBody: $("wmBody"), wmHeadStats: $("wmHeadStats"),
-    wmRank: $("wmRank")
+    wmRank: $("wmRank"), wmSns: $("wmSns")
   };
 
   /* ───────────── helpers ───────────── */
@@ -1235,13 +1273,13 @@
      - v2가 없으면 v1에서 사용자 추가분만 이어붙임 */
   function migrateWallets() {
     var base = null;
-    try {
-      var raw2 = localStorage.getItem(LS_KEY_V2);
-      if (raw2) {
-        var v2 = normalizeWallets(JSON.parse(raw2));
-        if (v2.length) base = v2;
-      }
-    } catch (e) {}
+    [LS_KEY_V3, LS_KEY_V2].forEach(function (key) {
+      if (base) return;
+      try {
+        var prev = normalizeWallets(JSON.parse(localStorage.getItem(key) || "[]"));
+        if (prev.length) base = prev;
+      } catch (e) {}
+    });
     if (!base) {
       try {
         var v1 = normalizeWallets(JSON.parse(localStorage.getItem(LS_KEY_V1) || "[]"));
@@ -1264,6 +1302,24 @@
       out.push(next);
     });
     if (!out.length) out = DEFAULTS.slice();
+
+    /* 기본 목록이 10 → 20곳으로 늘었습니다. 사용자가 직접 추가·삭제하지 않은(=기본 목록만 쓰던)
+       방문자에게는 새 기본 지갑을 같은 순서로 덧붙여, 예전 방문자도 20곳을 보게 합니다. */
+    var std = {};
+    Object.keys(OLD_DEFAULT_ADDRS).forEach(function (a) { std[a] = 1; });
+    DEFAULTS.forEach(function (d) { std[d.address] = 1; });
+    var customized = false;
+    for (var q = 0; q < out.length; q++) {
+      if (!std[out[q].address]) { customized = true; break; }
+    }
+    if (!customized && out.length < DEFAULTS.length) {
+      DEFAULTS.forEach(function (d) {
+        if (!seen[d.address]) {
+          seen[d.address] = 1;
+          out.push({ address: d.address, label: d.label, tag: d.tag });
+        }
+      });
+    }
     try { localStorage.setItem(LS_KEY, JSON.stringify(out)); } catch (e) {}
     return out;
   }
@@ -1315,6 +1371,15 @@
   }
 
   /* ───────────── data ───────────── */
+  /* 전역 쿨다운: 어느 요청이든 429를 받으면 잠시 모든 요청을 멈춰 재시도 폭주를 막습니다. */
+  var COOL = { until: 0, hits: 0 };
+
+  function coolWait() {
+    var left = COOL.until - Date.now();
+    if (left <= 0) return Promise.resolve();
+    return new Promise(function (res) { setTimeout(res, Math.min(left, 4000)); });
+  }
+
   function post(body) {
     var send = function () {
       return fetch(API, {
@@ -1323,14 +1388,15 @@
         body: JSON.stringify(body),
         cache: "no-store"
       }).then(function (r) {
+        if (r.status === 429) { COOL.until = Date.now() + 2500; COOL.hits++; }
         if (!r.ok) throw new Error("HTTP " + r.status);
         return r.json();
       });
     };
-    /* 429(레이트리밋)는 한 번은 짧게 기다렸다 다시 시도 — 카드·캔들 조회가 깨지지 않도록 */
-    return send().catch(function (err) {
-      if (String(err && err.message) !== "HTTP 429") throw err;
-      return new Promise(function (res) { setTimeout(res, 1500); }).then(send);
+    /* 429(레이트리밋)는 짧게 기다렸다 다시 시도 — 카드·캔들 조회가 깨지지 않도록 */
+    return coolWait().then(send).catch(function (err) {
+      if (!/429/.test(String(err && err.message) + String((err && err.response) || ""))) throw err;
+      return new Promise(function (res) { setTimeout(res, 1800); }).then(send);
     });
   }
 
@@ -1412,15 +1478,25 @@
       return null;
     }).catch(function () { return null; })];
 
-    wallets.forEach(function (w) {
+    /* 20개 지갑을 한꺼번에 쏘면 429가 잦아집니다. 0.12초 간격으로 흩어 보내고,
+       일시 실패한 지갑은 마지막 정상값을 유지한 채 '지연'으로 표시합니다. */
+    wallets.forEach(function (w, wi) {
       jobs.push(
-        post({ type: "clearinghouseState", user: w.address })
+        new Promise(function (res) { setTimeout(res, wi * RQ_GAP_MS); })
+          .then(function () { return post({ type: "clearinghouseState", user: w.address }); })
           .then(function (st) {
-            cache[w.address] = { ok: true, state: st, error: null, at: new Date() };
+            cache[w.address] = { ok: true, state: st, error: null, err: null, fail: 0, at: new Date() };
             return null;
           })
           .catch(function (err) {
-            cache[w.address] = { ok: false, state: null, error: String(err && err.message ? err.message : err), at: new Date() };
+            var msg = String(err && err.message ? err.message : err);
+            var prev = cache[w.address];
+            if (prev && prev.ok && prev.state) {
+              prev.err = msg;                       // 값은 그대로 두고 상태만 표시
+              prev.fail = (prev.fail || 0) + 1;
+            } else {
+              cache[w.address] = { ok: false, state: null, error: msg, at: new Date() };
+            }
             return null;
           })
       );
@@ -1856,9 +1932,10 @@
         '<div class="whale-id">' +
         '<div class="whale-name"><h3>' + esc(w.label) + "</h3>" +
         (w.tag ? '<span class="tag">' + esc(w.tag) + "</span>" : "") +
+        (d && d.ok && d.fail ? '<span class="tag" title="최근 조회가 일시 실패해 마지막 정상값을 보여 줍니다">지연 ' + d.fail + "</span>" : "") +
         rankInfo(w.address).html + "</div>" +
         '<span class="addr"><code>' + esc(w.address) + "</code>" +
-        '<button class="copy" type="button" data-copy="' + addrAttr + '">복사</button></span>' +
+        '<button class="copy" type="button" data-copy="' + addrAttr + '">복사</button>' + snsHtml(w.address) + "</span>" +
         "</div>";
 
       if (!d) {
@@ -1994,8 +2071,101 @@
     });
   }
 
+  /* 지갑별 공개 SNS.
+     - x: 하이퍼리퀴드 리더보드 displayName에 'x.com/…' 또는 '@handle'로 **본인이 직접** 적은 경우에만 링크합니다.
+     - 손으로 추정해 넣지 마세요. 확인되지 않은 주소는 비워 두면 'SNS 미확인 · Hypurrscan'으로 표시됩니다.
+     - 2026-11-23 확인: 20곳 중 displayName이 있는 곳은 0x7fda…(BobbyBigSize), 0x023a…(Auros) 두 곳뿐이고
+       둘 다 X 핸들이 아니어서 X 링크는 0건입니다. */
+  var SNS = {};
+  var HYPURR = "https://hypurrscan.io/address/";
+
+  function snsHtml(addr, inModal) {
+    var a = String(addr || "").toLowerCase();
+    var s = SNS[a];
+    if (s && s.x) {
+      return '<a class="sns x" href="' + esc(s.x) + '" target="_blank" rel="noopener noreferrer" ' +
+        'title="지갑 주인이 리더보드에 공개한 X 계정">' +
+        '<span class="x-i">𝕏</span> ' + esc(s.h || s.x.replace(/^https?:\/\/x\.com\//, "@")) + "</a>";
+    }
+    return '<a class="sns" href="' + HYPURR + encodeURIComponent(a) + '" target="_blank" rel="noopener noreferrer" ' +
+      'title="공개된 X/SNS 계정이 확인되지 않은 지갑입니다 · Hypurrscan에서 지갑 열기">' +
+      "SNS 미확인 · Hypurrscan ↗</a>";
+  }
+
   /* ───────────── 지갑 상세 모달 (누적 손익 + 세부 포지션) ───────────── */
   var WM = { addr: null, open: false, port: {}, pending: {}, otherOpen: false, lastFocus: null };
+
+  /* ───────────── 지갑 상세: 최근 세부 체결 내역 ─────────────
+     userFills(최근 2,000건)에서 최신 60건을 보여 줍니다. 30초 캐시. */
+  var WF = { addr: null, list: null, at: 0, err: "", loading: false, filter: "all", ttl: 30000 };
+  var WF_SHOW = 60;
+
+  function wfLoad(addr, force) {
+    if (!addr) return;
+    if (WF.addr !== addr) { WF.list = null; WF.at = 0; WF.err = ""; WF.loading = false; WF.addr = addr; }
+    if (!force && WF.list && WF.at && Date.now() - WF.at < WF.ttl) return;
+    if (WF.loading) return;
+    WF.loading = true;
+    WF.err = "";
+    post({ type: "userFills", user: addr }).then(function (arr) {
+      var list = (Array.isArray(arr) ? arr : []).map(function (f) {
+        var sz = Math.abs(num(f.sz)), px = num(f.px);
+        return {
+          t: Number(f.time) || 0, coin: String(f.coin || ""), dir: String(f.dir || ""),
+          sz: sz, px: px, val: sz * px, pnl: num(f.closedPnl)
+        };
+      }).filter(function (f) { return f.t && f.coin && f.sz; })
+        .sort(function (a, b) { return b.t - a.t; })
+        .slice(0, WF_SHOW);
+      if (WF.addr !== addr) return;              // 그 사이 다른 지갑을 열었으면 버립니다
+      WF.list = list; WF.at = Date.now(); WF.loading = false;
+      if (WM.open && WM.addr === addr) wmRefresh();
+    }).catch(function (e) {
+      if (WF.addr !== addr) return;
+      WF.loading = false;
+      WF.err = String((e && e.message) || e);
+      if (WM.open && WM.addr === addr) wmRefresh();
+    });
+  }
+
+  function wfHtml(addr) {
+    var st = WF.addr === addr ? WF : null;
+    var list = (st && st.list) || [];
+    var show = st && st.filter === "btceth" ? list.filter(function (f) { return inScope(f.coin); }) : list;
+    var head = '<div class="wm-sec" id="wfSec">' +
+      '<div class="wm-sec-head"><h4>최근 세부 체결 내역</h4>' +
+      '<span>' + (list.length ? "최근 " + list.length + "건 · userFills" : "userFills") + '</span>' +
+      '<div class="wm-tabs wf-tabs" role="group" aria-label="체결 코인 필터">' +
+      '<button type="button" data-wf="all" aria-pressed="' + (st && st.filter === "btceth" ? "false" : "true") + '">전체 코인</button>' +
+      '<button type="button" data-wf="btceth" aria-pressed="' + (st && st.filter === "btceth" ? "true" : "false") + '">BTC·ETH만</button>' +
+      "</div></div>";
+
+    if (!st || (st.loading && !list.length)) {
+      return head + '<div class="wm-load">체결 내역을 불러오는 중…</div></div>';
+    }
+    if (st.err && !list.length) {
+      return head + '<div class="wm-load err">체결 내역을 불러오지 못했습니다: ' + esc(st.err) + "</div></div>";
+    }
+    if (!show.length) {
+      return head + '<div class="wm-load">' + (list.length ? "선택한 범위의 체결이 없습니다." : "최근 체결이 없습니다.") + "</div></div>";
+    }
+    var rows = show.map(function (f) {
+      return "<tr>" +
+        '<td data-l="시각" class="wf-t">' + esc(kstFull(Math.round(f.t / 1000))) + "</td>" +
+        '<td data-l="코인" class="coin">' + esc(f.coin) + "</td>" +
+        '<td data-l="구분" class="side"><span class="side-pill ' + (/Long/i.test(f.dir) ? "long" : "short") + '">' + esc(f.dir || "—") + "</span></td>" +
+        '<td data-l="수량">' + fmtSize(f.sz) + "</td>" +
+        '<td data-l="체결가">' + fmtPrice(f.px) + "</td>" +
+        '<td data-l="체결 규모">' + fmtUsd(f.val, { compact: true }) + "</td>" +
+        '<td data-l="실현 손익" class="pnl ' + (f.pnl > 0 ? "pos" : f.pnl < 0 ? "neg" : "") + '">' +
+        (f.pnl ? fmtUsd(f.pnl, { signed: true, compact: true }) : "—") + "</td>" +
+        "</tr>";
+    }).join("");
+    return head + '<div class="wm-table wf-table"><table><thead><tr>' +
+      "<th>시각 (KST)</th><th>코인</th><th>구분</th><th>수량</th><th>체결가</th><th>체결 규모</th><th>실현 손익</th>" +
+      "</tr></thead><tbody>" + rows + "</tbody></table></div></div>";
+  }
+
   var PORT_TTL = 60000;        // 정상 응답은 1분 재사용
   var PORT_ERR_TTL = 15000;    // 실패는 15초 뒤 다시 시도
 
@@ -2153,6 +2323,7 @@
     el.wmTag.textContent = w.tag || "";
     el.wmTag.hidden = !w.tag;
     el.wmAddr.textContent = w.address;
+    if (el.wmSns) el.wmSns.innerHTML = snsHtml(w.address, true);
     var d = cache[addr];
     var ok = d && d.ok;
     var ms = ok ? ((d.state && d.state.marginSummary) || {}) : {};
@@ -2215,6 +2386,8 @@
         : '<div class="wm-load">' + SCOPE_TEXT + ' 포지션이 없습니다.</div>') +
       "</div>";
 
+    html += wfHtml(addr);
+
     var otherVal = 0, otherUpnl = 0;
     for (i = 0; i < other.length; i++) { otherVal += other[i].value; otherUpnl += other[i].upnl; }
 
@@ -2247,6 +2420,17 @@
     if (!el.wmBody) return;
     var det = el.wmBody.querySelector("details.wm-other");
     if (det) det.addEventListener("toggle", function () { WM.otherOpen = det.open; });
+    Array.prototype.forEach.call(el.wmBody.querySelectorAll("[data-wf]"), function (btn) {
+      btn.addEventListener("click", function () {
+        var f = btn.getAttribute("data-wf");
+        if (f !== "all" && f !== "btceth") return;
+        WF.filter = f;
+        var top = el.wmBody.scrollTop;
+        el.wmBody.innerHTML = wmBodyHtml(WM.addr);
+        wmBindBody();
+        el.wmBody.scrollTop = top;
+      });
+    });
     var retry = el.wmBody.querySelector("[data-wm-retry]");
     if (retry) retry.addEventListener("click", function () {
       if (!WM.addr) return;
@@ -2428,6 +2612,7 @@
     wmBindBody();
     try { el.wmClose.focus(); } catch (e) {}
     wmLoadPortfolio(addr);
+    wfLoad(addr);
     wmChartDraw(true);
   }
 
@@ -2622,7 +2807,7 @@
   var FILL_TTL = 10 * 60 * 1000;      // 체결 사슬 조회는 10분 캐시
   var FILL_PAGE = 2000;               // userFills / userFillsByTime 1회 최대 2,000건
   var FILL_MAX_REQ = 6;               // 지갑당 체결 요청 상한(최근 1회 + 과거 확장 5회)
-  var FILL_GAP_MS = 330;              // 체결 요청 사이 간격(레이트리밋 완화)
+  var FILL_GAP_MS = 450;              // 체결 요청 사이 간격(20곳 확장으로 늘림)
   var RIGHT_OFFSET = 12;              // 현재 캔들 오른쪽 여백(봉)
 
   /* 주기별 설정
@@ -2658,6 +2843,12 @@
   };
 
   var chChart = { top: null, bottom: null, candle: null, ratio: null, ratioPart: null };
+
+  /* ── 1시간 서버 스냅샷 (GitHub Actions → data/snapshots.json) ──
+     체결 복원이 닿지 않는 구간을 '그 시각에 실제로 조회한 값'으로 채웁니다.
+     지갑 목록이 화면과 다르면(사용자가 목록을 바꿨거나 기본값이 바뀜) 합치지 않습니다. */
+  var EXT_URL = "./data/snapshots.json";
+  var EXT = { list: [], at: 0, state: "idle", err: "" };
 
   var chel = {
     priceChart: $("priceChart"), indChart: $("indChart"),
@@ -2740,6 +2931,42 @@
       if (nv != null && isFinite(nv)) pts[i].net = nv;
     }
     return pts;
+  }
+
+
+  /* data/snapshots.json 을 지표 점에 합칩니다.
+     - 커버리지가 체결 복원보다 나쁘면(예: 서버 8/10 vs 복원 10/10) 덮어쓰지 않습니다.
+     - 전 지갑(ok == total) 스냅샷은 실선, 일부만 조회한 스냅샷은 점선입니다. */
+  function mergeExtSnap(pts, mode, stepMs) {
+    if (!EXT.list.length || !pts.length) return pts;
+    var map = {}, i, e;
+    for (i = 0; i < EXT.list.length; i++) {
+      e = EXT.list[i];
+      map[Math.floor(e.t / stepMs) * stepMs] = e;    // 같은 봉 구간은 더 늦은 스냅샷이 이김
+    }
+    for (i = 0; i < pts.length; i++) {
+      var hit = map[pts[i].t];
+      if (!hit) continue;
+      var v = mode === "btc" ? hit.b : hit.r;
+      if (v == null || !isFinite(v)) continue;
+      var tot = hit.tot || 0;
+      var ecov = tot ? Math.min(hit.cov || 0, tot) : 0;
+      var fq = (pts[i].tot && pts[i].cov) ? pts[i].cov / pts[i].tot : 0;
+      var eq = tot ? ecov / tot : 0;
+      if (eq < fq) continue;
+      var nv = mode === "btc" ? hit.bnet : hit.net;
+      pts[i].r = Math.round(v * 100) / 100;
+      if (nv != null && isFinite(nv)) pts[i].net = nv;
+      pts[i].xf = !!(tot && ecov >= tot);
+      pts[i].xsrc = "ext";
+      if (tot) { pts[i].cov = ecov; pts[i].tot = tot; }
+    }
+    return pts;
+  }
+
+  /* 체결 복원 + 화면 스냅샷(localStorage) + 서버 스냅샷을 한 번에 합칩니다. */
+  function buildPoints(stepMs) {
+    return mergeExtSnap(mergeSnap(computePoints(CH.candles, CH.mode), CH.mode, stepMs), CH.mode, stepMs);
   }
 
   /* ── 요청 큐 (429 완화: 지수 백오프 재시도) ── */
@@ -3053,7 +3280,7 @@
       if (p.r == null || !isFinite(p.r)) continue;
       var sec = Math.floor(p.t / 1000);
       var val = Math.round(p.r * 100) / 100;
-      var isFull = !!(p.tot && p.cov >= p.tot);
+      var isFull = !!(p.xf || (p.tot && p.cov >= p.tot));
       bySec[sec] = { v: val, full: isFull };
       CH.ratioByTime[sec] = p.r;
       CH.ratioVals.push({ t: sec, v: val, full: isFull });
@@ -3097,6 +3324,7 @@
       CH.fitted = true;
       setTimeout(function () { fitRange(0, false); }, 120);
     }
+    syncScaleWidth();
     chDiag("draw");
   }
 
@@ -3203,6 +3431,7 @@
         chel.indCov.innerHTML = '<span class="warn">복원 구간 없음</span>';
       } else {
         var covTxt = st.minCov + (st.maxCov !== st.minCov ? "~" + st.maxCov : "") + "/" + st.tot + "곳";
+        if (EXT.list.length) covTxt += " · 1h " + EXT.list.length + "점";
         chel.cov.innerHTML = "실측 <b>" + fmtHours(spanEnd - st.first) + "</b> · 커버리지 <b>" + covTxt + "</b>";
         chel.indCov.innerHTML = "복원 " + fmtHours(spanEnd - st.first) + " · " +
           (st.minCov === st.tot ? "전 지갑 " + st.tot + "곳" : covTxt + "<span style='color:var(--muted-2)'> · 점선</span>");
@@ -3234,7 +3463,9 @@
     var line3 = "<b>API 한도</b> candleSnapshot은 1회 최대 5,000봉이고 보관도 봉당 5,000개 수준입니다" +
       "(15m 약 52일 · 1h 약 7개월 · 4h 약 2.3년 · 1d는 2020-08-19부터 전체). " +
       "체결(userFills ・ userFillsByTime)은 1회 2,000건이며 지갑별 보관 깊이가 달라, 주문이 많은 지갑은 복원 구간이 몇 시간에 그칩니다. " +
-      "복원되지 않는 구간은 값을 만들지 않고, 5초마다 기록하는 현재 포지션 스냅샷(" + CH.snap.length.toLocaleString("en-US") + "점)이 앞으로 쌓입니다.";
+      "복원되지 않는 구간은 값을 만들지 않고, 5초마다 기록하는 화면 스냅샷(" + CH.snap.length.toLocaleString("en-US") +
+      "점)과 GitHub Actions가 1시간마다 남기는 서버 스냅샷(" +
+      (EXT.state === "error" ? "불러오기 실패" : EXT.list.length.toLocaleString("en-US") + "점") + ")이 앞으로 쌓입니다.";
     chel.foot.innerHTML = (line1 ? line1 + "<br>" : "") + line2 + "<br>" + line3;
   }
 
@@ -3263,7 +3494,7 @@
         if (seq !== CH.seq) return;
         var built = buildIndex(r);
         CH.fills[w.address] = built;
-        CH.points = mergeSnap(computePoints(CH.candles, CH.mode), CH.mode, CHART_TF[CH.tf].ms);
+        CH.points = buildPoints(CHART_TF[CH.tf].ms);
         draw(); updateLabels(); updateFoot();
         return next();
       }, function () {
@@ -3307,12 +3538,12 @@
         CH.ethClose.push(cpx);
         CH.ethByTime[e.t] = cpx;
       }
-      CH.points = mergeSnap(computePoints(CH.candles, CH.mode), CH.mode, tf.ms);
+      CH.points = buildPoints(tf.ms);
       draw(); updateLabels(); updateFoot();
       return ensureFills(seq);
     }).then(function () {
       if (seq !== CH.seq) return;
-      CH.points = mergeSnap(computePoints(CH.candles, CH.mode), CH.mode, tf.ms);
+      CH.points = buildPoints(tf.ms);
       CH.loading = false;
       draw(); updateLabels(); updateFoot();
       setTimeout(function () { fitRange(0, false); }, 150);
@@ -3337,7 +3568,7 @@
       CH.candleBusy = false;
       if (!cand || !cand.length) return;
       CH.candles = cand;
-      CH.points = mergeSnap(computePoints(CH.candles, CH.mode), CH.mode, tf.ms);
+      CH.points = buildPoints(tf.ms);
       draw(); updateLabels(); updateFoot();
     }).catch(function () { CH.candleBusy = false; });
   }
@@ -3461,16 +3692,21 @@
     }
 
     var t1 = chChart.top.timeScale(), t2 = chChart.bottom.timeScale();
+    /* 두 차트는 봉 수가 같으므로(whitespace로 1:1 정렬) 시간 범위가 아니라
+       '논리 범위'를 그대로 복사해야 픽셀 단위로 같은 세로선에 놓입니다. */
     function link(a, b) {
       var timer = null;
-      a.subscribeVisibleTimeRangeChange(function (range) {
-        if (CH.linking || !range || range.from == null || range.to == null) return;
+      a.subscribeVisibleLogicalRangeChange(function (range) {
+        if (CH.linking || !range) return;
         clearTimeout(timer);
         timer = setTimeout(function () {
+          var cur = null;
+          try { cur = b.getVisibleLogicalRange(); } catch (e) {}
+          if (cur && Math.abs(cur.from - range.from) < 0.001 && Math.abs(cur.to - range.to) < 0.001) return;
           CH.linking = true;
-          try { b.setVisibleRange(range); } catch (e) {}
-          setTimeout(function () { CH.linking = false; }, 80);
-        }, 90);
+          try { b.setVisibleLogicalRange(range); } catch (e) {}
+          setTimeout(function () { CH.linking = false; }, 60);
+        }, 40);
       });
     }
     try { link(t1, t2); link(t2, t1); } catch (e) {}
@@ -3538,6 +3774,27 @@
   }
 
   /* 컨테이너 크기에 맞춰 차트 크기를 직접 지정 (autoSize 대체) */
+  /* ── 두 차트의 세로선 정렬 ──
+     가격축(예: 82,500.00)과 지표축(예: 31.1%)은 라벨 폭이 달라 Lightweight Charts가
+     각자 다른 폭의 가격축을 잡습니다. 그러면 플롯 영역이 어긋나 같은 시각의 봉과
+     지표 점이 다른 세로선에 놓입니다. 두 축의 실제 폭을 재서 큰 쪽으로 minimumWidth를
+     맞추면 플롯 폭·눈금선이 정확히 일치합니다. */
+  function syncScaleWidth() {
+    if (!chChart.top || !chChart.bottom) return;
+    try {
+      var w1 = 0, w2 = 0;
+      try { w1 = chChart.top.priceScale("right").width() || 0; } catch (e) {}
+      try { w2 = chChart.bottom.priceScale("right").width() || 0; } catch (e) {}
+      var target = Math.round(Math.max(76, w1, w2));
+      if (!isFinite(target) || target <= 0) return;
+      if (Math.abs(w1 - w2) > 1 || w1 < target || w2 < target) {
+        chChart.top.applyOptions({ rightPriceScale: { minimumWidth: target } });
+        chChart.bottom.applyOptions({ rightPriceScale: { minimumWidth: target } });
+        CH.scaleW = target;
+      }
+    } catch (e) {}
+  }
+
   function sizeCharts() {
     try {
       var pw = chel.priceChart.clientWidth, ph = chel.priceChart.clientHeight;
@@ -3545,6 +3802,7 @@
       if (pw > 0 && ph > 0 && chChart.top) chChart.top.applyOptions({ width: pw, height: ph });
       if (iw > 0 && ih > 0 && chChart.bottom) chChart.bottom.applyOptions({ width: iw, height: ih });
     } catch (e) {}
+    syncScaleWidth();
     paintSplit();   /* 분할선의 안내 문구·aria 값도 현재 높이에 맞춤 */
   }
   var sizeTimer = null;
@@ -3773,6 +4031,11 @@
         topRange: chChart.top ? chChart.top.timeScale().getVisibleLogicalRange() : null,
         botRange: chChart.bottom ? chChart.bottom.timeScale().getVisibleLogicalRange() : null,
         botVisible: chChart.bottom ? chChart.bottom.timeScale().getVisibleRange() : null,
+        scaleTop: chChart.top ? chChart.top.priceScale("right").width() : -1,
+        scaleBot: chChart.bottom ? chChart.bottom.priceScale("right").width() : -1,
+        xTop: (chChart.top && CH.candles.length) ? chChart.top.timeScale().timeToCoordinate(Math.floor(CH.candles[CH.candles.length - 1].t / 1000)) : null,
+        xBot: (chChart.bottom && CH.candles.length) ? chChart.bottom.timeScale().timeToCoordinate(Math.floor(CH.candles[CH.candles.length - 1].t / 1000)) : null,
+        ext: { state: EXT.state, n: EXT.list.length },
         err: CH.drawErr || null
       };
       d.textContent = JSON.stringify(o);
@@ -3784,10 +4047,52 @@
       "인터넷 연결을 확인한 뒤 새로고침해 주세요. 아래 고래 포지션 표는 정상 동작합니다.";
   }
 
+  /* 1시간 서버 스냅샷 로드 — 실패해도 차트는 그대로 동작합니다(조용히 무시) */
+  function loadExt() {
+    if (!window.fetch) { EXT.state = "skip"; return; }
+    if (EXT.state !== "ok") EXT.state = "loading";
+    fetch(EXT_URL + "?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (doc) {
+        var arr = Array.isArray(doc) ? doc : (doc && doc.snapshots) || [];
+        var addrs = (!Array.isArray(doc) && doc && doc.wallets) || null;
+        if (addrs && addrs.length) {
+          var a = addrs.map(function (x) { return String(x).toLowerCase(); }).sort().join(",");
+          var b = wallets.map(function (w) { return String(w.address).toLowerCase(); }).sort().join(",");
+          if (a !== b) { EXT.list = []; EXT.state = "mismatch"; return; }   // 다른 지갑 목록 → 합치지 않음
+        }
+        var out = [], i;
+        for (i = 0; i < arr.length; i++) {
+          var s = arr[i] || {}, be = s.btcEth || {}, bt = s.btc || {};
+          if (!isFinite(s.ts) || be.netLongPct == null || !isFinite(be.netLongPct)) continue;
+          var cv = (be.coverage && isFinite(be.coverage.ok)) ? Number(be.coverage.ok) : 0;
+          var tt = (be.coverage && isFinite(be.coverage.total)) ? Number(be.coverage.total) : 0;
+          out.push({
+            t: Number(s.ts),
+            r: Number(be.netLongPct),
+            b: (bt.netLongPct == null || !isFinite(bt.netLongPct)) ? null : Number(bt.netLongPct),
+            net: (Number(be.longUsd) || 0) - (Number(be.shortUsd) || 0),
+            bnet: (Number(bt.longUsd) || 0) - (Number(bt.shortUsd) || 0),
+            cov: cv, tot: tt
+          });
+        }
+        out.sort(function (x, y) { return x.t - y.t; });
+        EXT.list = out; EXT.at = Date.now(); EXT.state = out.length ? "ok" : "empty";
+        if (CH.ready && CH.candles.length) {
+          CH.points = buildPoints(CHART_TF[CH.tf].ms);
+          syncScaleWidth();
+          draw(); updateLabels(); updateFoot();
+        }
+      })
+      .catch(function (e) { EXT.state = "error"; EXT.err = String((e && e.message) || e); });
+  }
+
   function bootChart() {
     if (CH.booted) return;
     CH.booted = true;
     CH.snap = loadSnap();
+    loadExt();                          // 1시간 서버 스냅샷(매시 GitHub Actions 기록)
+    setInterval(loadExt, 9e5);          // 15분마다 갱신 확인
     CH.fills = {};
     if (window.LightweightCharts) {
       if (createCharts()) load(); else chartFallback();
@@ -3833,7 +4138,7 @@
       });
       if (!CH.candles.length) return;
       CH.fitted = true;
-      CH.points = mergeSnap(computePoints(CH.candles, CH.mode), CH.mode, CHART_TF[CH.tf].ms);
+      CH.points = buildPoints(CHART_TF[CH.tf].ms);
       draw(); updateLabels(); updateFoot();
     });
   });
@@ -3845,7 +4150,7 @@
 
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden && CH.ready && !CH.loading) {
-      CH.points = mergeSnap(computePoints(CH.candles, CH.mode), CH.mode, CHART_TF[CH.tf].ms);
+      CH.points = buildPoints(CHART_TF[CH.tf].ms);
       draw(); updateLabels();
     }
   });
