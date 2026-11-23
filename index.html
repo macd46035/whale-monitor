@@ -1403,11 +1403,12 @@
 
       if (!d) {
         visible++;
-        return '<div class="panel whale">' + head + '<div class="errline">불러오는 중…</div></div>';
+        return '<div class="panel whale">' + head + "</div>" +
+          '<div class="errline">불러오는 중…</div></div>';
       }
       if (!d.ok) {
         visible++;
-        return '<div class="panel whale">' + head +
+        return '<div class="panel whale">' + head + "</div>" +
           '<div class="errline">조회 실패: ' + esc(d.error || "알 수 없는 오류") + " (다음 갱신에 다시 시도합니다)</div></div>";
       }
 
