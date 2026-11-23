@@ -1846,16 +1846,18 @@
       var cls = r.pnl > 0 ? "pos" : r.pnl < 0 ? "neg" : "";
       var v = r.pnl == null ? "—" : fmtUsd(r.pnl, { signed: true, compact: true });
       var p = r.pct == null ? "" : (r.pct < 0 ? "−" : "+") + Math.abs(r.pct).toFixed(1) + "%";
+      var pLine = p ? p + " · 시작가 대비" : (r.key === "allTime" ? "계정 시작 이후 누적" : "—");
       return '<div class="wm-tile">' +
         '<div class="k">' + r.label + "</div>" +
         '<div class="v ' + cls + '">' + v + "</div>" +
-        '<div class="p ' + cls + '">' + (p ? p + " · 시작가 대비" : "—") + "</div>" +
+        '<div class="p ' + cls + '">' + pLine + "</div>" +
         '<div class="sub">' + (r.perp == null ? "" : "선물 " + fmtUsd(r.perp, { signed: true, compact: true }) + "<br>") +
         (r.start > 0 ? "시작 " + fmtUsd(r.start, { compact: true }) + " · " : "") + fmtDay(r.from) + "~</div>" +
         "</div>";
     }).join("") + "</div>" +
       '<div class="wm-note">Hyperliquid <b>portfolio</b> API의 기간별 누적 손익(pnlHistory 마지막 값)입니다. ' +
-      "시작가 대비 %는 그 구간 시작 계좌가치로 나눈 값이고, 선물 표기는 perp 계정 기준입니다.</div>";
+      "시작가 대비 %는 그 구간 시작 계좌가치로 나눈 값이고, 선물 표기는 perp 계정 기준입니다. " +
+      "카드 상단의 ‘누적 +$xxM’ 표기는 리더보드 캐처 값이라 이 수치와 다를 수 있습니다.</div>";
   }
 
   function liqInfo(p) {
@@ -1958,7 +1960,7 @@
         ? '<details class="wm-other"' + (WM.otherOpen ? " open" : "") + '>' +
           '<summary>다른 코인 <b>' + other.length + '개</b>' +
           '<span class="n">총 ' + fmtUsd(otherVal, { compact: true }) + " · 미실현 " +
-          fmtUsd(otherUpnl, { signed: true, compact: true }) + '</span><span class="arw">펼치기</span></summary>' +
+          fmtUsd(otherUpnl, { signed: true, compact: true }) + '</span><span class="arw"></span></summary>' +
           '<div class="wm-table"><table><thead><tr><th>코인</th><th>방향</th><th>수량</th><th>포지션 규모</th><th>미실현 손익</th></tr></thead><tbody>' +
           other.map(function (p) {
             var cls = p.upnl > 0 ? "pos" : p.upnl < 0 ? "neg" : "";
