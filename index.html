@@ -390,6 +390,15 @@
   .chart-box{width:100%;min-width:0}
   #priceChart{height:302px}
   #indChart{height:176px}
+  /* 지표 차트 위 안내 — 아직 복원된 지표가 없을 때(빈 축만 보이는 상태) 대신 표시 */
+  .chart-wrap{position:relative;width:100%;min-width:0}
+  .chart-mask{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:7px;
+    padding:0 16px;text-align:center;font-size:12px;line-height:1.5;color:var(--muted-2);
+    background:rgba(9,13,19,.82);pointer-events:none;z-index:2;
+  }
+  .chart-mask[hidden]{display:none}
+  .chart-mask b{color:var(--muted);font-weight:600}
   /* 지표 패널 머리말 — 지표 이름·최신값·복원 커버리지 */
   .ind-head{
     display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap;
@@ -815,7 +824,10 @@
       <span class="k">순노출 <b id="indNet">—</b></span>
       <span class="cov" id="indCov">—</span>
     </div>
-    <div class="chart-box" id="indChart"></div>
+    <div class="chart-wrap">
+      <div class="chart-box" id="indChart"></div>
+      <div class="chart-mask" id="indMask">지표를 그리는 중입니다…</div>
+    </div>
     <div class="ch-foot" id="chFoot">차트를 불러오는 중입니다…</div>
   </section>
 
@@ -2589,7 +2601,7 @@
   var CH = {
     ready: false, loading: false, candleBusy: false,
     tf: "1h", mode: "all",
-    candles: [], eth: [], points: [], snap: [],
+    candles: [], eth: [], points: [], snap: [], ratioVals: [],
     fills: {},                       // address -> { idx, coinList, coveredFrom, count, pages, capped, at }
     candleByTime: {}, ratioByTime: {}, ethByTime: {}, ethTimes: [], ethClose: [],
     fitted: false, linking: false, xlink: false, seq: 0, progress: null, progressPage: 0,
@@ -2604,6 +2616,7 @@
     netVal: $("chNetVal"), modeLabel: $("chModeLabel"), cov: $("chCov"),
     foot: $("chFoot"),
     indTitle: $("indTitle"), indLast: $("indLast"), indNet: $("indNet"), indCov: $("indCov"),
+    indMask: $("indMask"),
     fitBtn: $("chFitBtn")
   };
 
@@ -2705,10 +2718,12 @@
      최근까지를 한 번에 줍니다(1회 최대 5,000봉). 예전에는 창을 7일로 잘라 요청해
      1h 캔들이 며칠치만 보였습니다. */
   function fetchCandles(coin, interval) {
-    return post({
+    /* 캔들 조회도 429 완화 큐(qpost)를 거칩니다. 예전에는 post()를 바로 불러
+       주기 전환 때 캔들·체결 요청이 한꺼번에 나가 429로 차트가 비는 일이 있었습니다. */
+    return qpost({
       type: "candleSnapshot",
       req: { coin: coin, interval: interval, startTime: 0, endTime: Date.now() }
-    }).then(function (d) {
+    }, 240).then(function (d) {
       if (!Array.isArray(d)) return [];
       return d.slice().sort(function (a, b) { return a.t - b.t; });
     });
@@ -2982,22 +2997,44 @@
       CH.candleByTime[obj.time] = obj;
     }
     CH.ratioByTime = {};
+    CH.ratioVals = [];
+    var bySec = {};
     for (i = 0; i < CH.points.length; i++) {
       var p = CH.points[i];
       if (p.r == null || !isFinite(p.r)) continue;
       var sec = Math.floor(p.t / 1000);
-      var pt = { time: sec, value: Math.round(p.r * 100) / 100 };
-      var isFull = p.tot && p.cov >= p.tot;
-      if (isFull) full.push(pt); else part.push(pt);        // 일부 지갑만 복원된 구간은 점선
+      var val = Math.round(p.r * 100) / 100;
+      var isFull = !!(p.tot && p.cov >= p.tot);
+      bySec[sec] = { v: val, full: isFull };
       CH.ratioByTime[sec] = p.r;
+      CH.ratioVals.push({ t: sec, v: val, full: isFull });
       if (firstCov === null) { firstCov = sec; firstInPart = !isFull; }
     }
 
-    try {
-      chChart.candle.setData(cd);
-      chChart.ratio.setData(full);
-      chChart.ratioPart.setData(part);
-    } catch (e) { return; }
+    /* 지표 차트도 캔들과 똑같은 봉 수·똑같은 시간축을 갖게 합니다.
+       값이 없는 봉은 whitespace({time})로 채우면 두 차트의 논리 인덱스가 1:1로 맞아,
+       같은 setVisibleLogicalRange를 그대로 쓸 수 있습니다. (예전에는 지표 차트의 봉 수가
+       캔들보다 훨씬 적어 같은 인덱스를 넘겼을 때 지표 데이터가 보이는 구간 밖으로 밀렸고,
+       그 결과 지표 패널이 빈 채로(축만 0~125) 보였습니다.) */
+    for (i = 0; i < cd.length; i++) {
+      var st = cd[i].time, hit = bySec[st];
+      if (hit && hit.full) {
+        full.push({ time: st, value: hit.v });
+        part.push({ time: st });
+      } else if (hit) {
+        full.push({ time: st });
+        part.push({ time: st, value: hit.v });
+      } else {
+        full.push({ time: st });
+        part.push({ time: st });
+      }
+    }
+
+    /* 한 시리즈의 setData가 실패해도 다른 시리즈·캔들 그리기를 막지 않는다 */
+    CH.drawErr = "";
+    try { chChart.candle.setData(cd); } catch (e) { CH.drawErr = "candle " + (e && e.message); }
+    try { chChart.ratio.setData(full); } catch (e) { CH.drawErr += " | ratio " + (e && e.message); }
+    try { chChart.ratioPart.setData(part); } catch (e) { CH.drawErr += " | part " + (e && e.message); }
 
     var markers = firstCov == null ? [] : [{
       time: firstCov, position: "aboveBar", color: "#8a97aa", shape: "arrowDown", text: "복원 시작"
@@ -3011,21 +3048,40 @@
       CH.fitted = true;
       setTimeout(function () { fitRange(0, false); }, 120);
     }
+    chDiag("draw");
+  }
+
+  /* 지표 값이 있는 구간의 봉 수 */
+  function indBarSpan() {
+    var v = CH.ratioVals;
+    if (!v || !v.length) return 0;
+    var step = (CHART_TF[CH.tf].ms || 36e5) / 1000;
+    return Math.max(1, Math.round((v[v.length - 1].t - v[0].t) / step) + 1);
   }
 
   /* 두 차트를 같은 구간으로 맞춥니다(all=false면 최근 viewBars봉, true면 불러온 전체).
-     오른쪽에는 현재 캔들 뒤로 RIGHT_OFFSET 만큼 여백을 둡니다. */
+     오른쪽에는 현재 캔들 뒤로 RIGHT_OFFSET 만큼 여백을 둡니다.
+     지표는 체결로 되돌릴 수 있는 구간(보통 며칠)만 있으므로, 그 구간이 기본 화면보다
+     짧으면 그 구간에 맞춰 기본 화면을 좁혀 지표선이 읽히게 합니다. */
   function fitRange(tries, all) {
     if (!CH.ready) return;
     tries = tries || 0;
     try {
       var n = chChart.candle.data().length;
       if (!n) return;
-      var vb = CHART_TF[CH.tf].viewBars || n;
-      var from = (all || n <= vb) ? 0 : n - vb;
-      from = Math.max(0, from);
+      var tf = CHART_TF[CH.tf];
+      var vb = tf.viewBars || n;
+      var bars = all ? n : Math.min(n, vb);
+      if (!all) {
+        var ib = indBarSpan();
+        /* 지표 구간이 화면 폭의 40% 정도를 차지하도록 맞춤(최소 30봉) */
+        if (ib > 0) bars = Math.min(bars, Math.max(Math.round(ib * 2.5), 30));
+      }
+      bars = Math.max(1, bars);
+      var from = Math.max(0, n - bars);
       var vr = { from: from - 0.5, to: n - 0.5 + RIGHT_OFFSET };
       chChart.top.timeScale().setVisibleLogicalRange(vr);
+      /* 두 차트의 데이터 봉 수가 같으므로(whitespace 채움) 같은 논리 범위가 그대로 맞습니다 */
       chChart.bottom.timeScale().setVisibleLogicalRange(vr);
       var r = chChart.top.timeScale().getVisibleLogicalRange();
       var b = chChart.bottom.timeScale().getVisibleLogicalRange();
@@ -3073,6 +3129,17 @@
     chel.indNet.textContent = netTxt;
     chel.netVal.style.color = last ? (last.net >= 0 ? "var(--long)" : "var(--short)") : "";
     chel.indNet.style.color = chel.netVal.style.color;
+
+    /* 복원된 지표 값이 아직 없으면 빈 축만 보이므로 안내를 덮습니다 */
+    if (chel.indMask) {
+      var hasVals = CH.ratioVals && CH.ratioVals.length > 0;
+      chel.indMask.hidden = hasVals;
+      if (!hasVals) {
+        chel.indMask.innerHTML = CH.progress
+          ? '체결 이력으로 지표를 복원하는 중입니다… <b>' + CH.progress + '</b>'
+          : '지표선을 그릴 구간이 없습니다 — 체결 사슬을 이을 수 없어 복원하지 못했습니다.';
+      }
+    }
 
     var cdAll = CH.candles;
     var spanEnd = cdAll.length ? cdAll[cdAll.length - 1].t + CHART_TF[CH.tf].ms : Date.now();
@@ -3258,6 +3325,26 @@
     updateLabels();
   }
 
+  /* 지표(%) 세로축: 보이는 구간의 값에 맞춰 그리되, 변동이 작을 때 과장되지 않도록
+     최소 20%p 폭을 둡니다. (예전처럼 0~100 고정이면 17% 부근의 선이 바닥에 붙어
+     변화가 거의 보이지 않았습니다.) */
+  function pctAutoscale(original) {
+    var res = null;
+    try { res = original(); } catch (e) { res = null; }
+    if (!res || !res.priceRange) return res;
+    var lo = res.priceRange.minValue, hi = res.priceRange.maxValue;
+    if (!isFinite(lo) || !isFinite(hi)) return res;
+    var minSpan = 20, span = hi - lo;
+    if (span < minSpan) {
+      var mid = (hi + lo) / 2;
+      lo = mid - minSpan / 2;
+      hi = mid + minSpan / 2;
+    }
+    var out = { priceRange: { minValue: lo, maxValue: hi } };
+    if (res.margins) out.margins = res.margins;
+    return out;
+  }
+
   /* ── 차트 생성 ── */
   function createCharts() {
     var LWC = window.LightweightCharts;
@@ -3304,7 +3391,7 @@
         lineColor: "#5b8cff", lineWidth: 2,
         topColor: "rgba(91,140,255,.30)", bottomColor: "rgba(91,140,255,.02)",
         priceFormat: { type: "price", precision: 1, minMove: 0.1 },
-        autoscaleInfoProvider: function () { return { priceRange: { minValue: 0, maxValue: 100 } }; },
+        autoscaleInfoProvider: pctAutoscale,
         priceLineStyle: 2, priceLineColor: "rgba(91,140,255,.5)",
         priceLineVisible: true, lastValueVisible: true, crosshairMarkerVisible: true
       });
@@ -3318,7 +3405,7 @@
         color: "rgba(91,140,255,.85)", lineWidth: 2, lineStyle: 2,
         priceFormat: { type: "price", precision: 1, minMove: 0.1 },
         priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false,
-        autoscaleInfoProvider: function () { return { priceRange: { minValue: 0, maxValue: 100 } }; }
+        autoscaleInfoProvider: pctAutoscale
       });
     } catch (e) {
       return false;
@@ -3413,6 +3500,32 @@
     for (k in a) if (a.hasOwnProperty(k)) out[k] = a[k];
     for (k in b) if (b.hasOwnProperty(k)) out[k] = b[k];
     return out;
+  }
+
+  /* 지표 차트 진단용(주소 뒤에 #chdbg를 붙일 때만 숨은 div에 상태를 적습니다) */
+  function chDiag(tag) {
+    try {
+      if (location.hash.indexOf("chdbg") < 0) return;
+      var d = document.getElementById("chdbg");
+      if (!d) {
+        d = document.createElement("div");
+        d.id = "chdbg"; d.style.display = "none";
+        document.body.appendChild(d);
+      }
+      var o = {
+        at: new Date().toISOString(), tag: tag, tf: CH.tf, mode: CH.mode, loading: CH.loading,
+        candles: CH.candles.length, vals: CH.ratioVals ? CH.ratioVals.length : -1,
+        span: indBarSpan(),
+        candleData: chChart.candle ? chChart.candle.data().length : -1,
+        ratioData: chChart.ratio ? chChart.ratio.data().length : -1,
+        partData: chChart.ratioPart ? chChart.ratioPart.data().length : -1,
+        topRange: chChart.top ? chChart.top.timeScale().getVisibleLogicalRange() : null,
+        botRange: chChart.bottom ? chChart.bottom.timeScale().getVisibleLogicalRange() : null,
+        botVisible: chChart.bottom ? chChart.bottom.timeScale().getVisibleRange() : null,
+        err: CH.drawErr || null
+      };
+      d.textContent = JSON.stringify(o);
+    } catch (e) {}
   }
 
   function chartFallback() {
