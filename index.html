@@ -411,7 +411,7 @@
     opacity:.62;
     transition:opacity .12s,border-color .12s,background .12s,box-shadow .12s;
   }
-  .pane-split-grip i{display:block;width:2px;height:2px;border-radius:50%;background:var(--muted-2);transition:background .12s}
+  .pane-split-grip i{display:block;width:3px;height:3px;border-radius:50%;background:var(--muted);transition:background .12s}
   .pane-split:hover::before,.pane-split:focus-visible::before,.pane-split.is-drag::before{
     background:var(--accent);height:2px;margin-top:-1px;
     box-shadow:0 0 10px rgba(91,140,255,.55);
@@ -862,8 +862,8 @@
     <div class="chart-box" id="priceChart"></div>
     <!-- 가격 차트와 지표 패널 사이 높이 조절 핸들 (위/아래로 드래그, 더블클릭 초기화) -->
     <div class="pane-split" id="indSplit" role="separator" aria-orientation="horizontal"
-         aria-label="가격 차트와 지표 패널 높이 조절" aria-valuemin="90" aria-valuenow="216"
-         tabindex="0" title="위/아래로 드래그해 지표 패널 높이를 조절합니다 · 더블클릭하면 기본값으로 돌아갑니다">
+         aria-label="가격 차트와 지표 패널 높이 조절(드래그, 더블클릭하면 기본값)" aria-valuemin="90" aria-valuenow="216"
+         tabindex="0">
       <span class="pane-split-grip" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="pane-split-tip" id="indSplitTip" aria-hidden="true">지표 <b>216px</b></span>
     </div>
@@ -3523,6 +3523,17 @@
       }
     } catch (e) {}
     CH.ready = true;
+    /* 저장된 분할 위치를 실제 레이아웃(폰트·데이터 로딩 뒤) 기준으로 한 번 더 맞춥니다 */
+    setTimeout(function () {
+      try {
+        if (indSavedH == null) { paintSplit(); return; }
+        if (!indSplitReady) return;
+        clearPriceH();
+        var pool = chartPool();
+        setIndH(clampInd(indSavedH, pool), false, pool);
+        sizeCharts();
+      } catch (e) {}
+    }, 600);
     return true;
   }
 
@@ -3554,6 +3565,7 @@
   var IND_MIN = 90;          // 지표 패널 최소 높이
   var PRICE_MIN = 180;       // 가격 차트 최소 높이(요청값)
   var indSavedH = null;      // 사용자가 고른 지표 패널 높이(px). null이면 기본값
+  var indSplitReady = false; // 분할선 초기화가 끝났는지(차트 부팅 후 재정렬에서 사용)
   var splitEl = $("indSplit");
   var splitTip = $("indSplitTip");
   var chartPanel = $("chartPanel");
@@ -3723,6 +3735,8 @@
         } else { clearPriceH(); paintSplit(); }
       }, 180);
     });
+
+    indSplitReady = true;
   })();
 
   function mix(a, b) {
