@@ -43,7 +43,7 @@
     min-height:100vh;
   }
   a{color:var(--accent);text-decoration:none}
-  .wrap{max-width:1320px;margin:0 auto;padding:0 16px 72px}
+  .wrap{max-width:1440px;margin:0 auto;padding:0 20px 68px}
 
   /* ── top bar ───────────────────────────────────── */
   .topbar{
@@ -53,7 +53,7 @@
     border-bottom:1px solid var(--line-soft);
   }
   .topbar-inner{
-    max-width:1320px;margin:0 auto;padding:11px 16px;
+    max-width:1440px;margin:0 auto;padding:12px 20px;
     display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   }
   .brand{display:flex;align-items:center;gap:11px;min-width:0}
@@ -105,8 +105,8 @@
   .sec-head span{font-size:11.5px;color:var(--muted)}
 
   /* ── summary ───────────────────────────────────── */
-  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
-  .stat{padding:14px 15px;position:relative;overflow:hidden}
+  .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:20px}
+  .stat{padding:16px 18px;position:relative;overflow:hidden}
   .stat .k{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
   .stat .v{font-size:22px;font-weight:700;letter-spacing:-.5px;margin-top:6px;font-variant-numeric:tabular-nums}
   .stat .s{font-size:11px;color:var(--muted-2);margin-top:3px;font-variant-numeric:tabular-nums}
@@ -313,7 +313,7 @@
   .empty{padding:22px 15px;text-align:center;color:var(--muted-2);font-size:12.5px}
 
   /* ── chart panel ───────────────────────────────── */
-  .chartpanel{margin-top:16px;padding:0;overflow:hidden;position:relative}
+  .chartpanel{margin-top:0;padding:0;overflow:hidden;position:relative}
   .chart-head{
     display:flex;align-items:center;gap:12px;flex-wrap:wrap;
     padding:12px 14px 10px;border-bottom:1px solid var(--line-soft);
@@ -347,6 +347,19 @@
   }
   .ch-foot b{color:var(--muted);font-weight:600}
   .ch-foot .warn{color:var(--warn)}
+
+  /* ── desktop dashboard grid (기본은 세로 배치) ──── */
+  .dash-main{display:block}
+  .dash-main-primary{min-width:0}
+  .dash-main-side{display:flex;flex-direction:column;gap:14px;margin-top:14px;min-width:0}
+  .dash-main-side > .bias{margin-top:0}
+  .evt-panel-head{
+    display:flex;flex-direction:column;gap:3px;
+    padding:13px 15px 11px;border-bottom:1px solid var(--line-soft);
+    background:linear-gradient(180deg,rgba(24,34,49,.72),rgba(17,24,35,0));
+  }
+  .evt-panel-head h3{margin:0;font-size:14px;letter-spacing:-.1px}
+  .evt-panel-head span{font-size:11px;color:var(--muted-2);line-height:1.5}
 
   /* ── footer ────────────────────────────────────── */
   footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line-soft);color:var(--muted-2);font-size:11.5px;line-height:1.7}
@@ -419,6 +432,94 @@
     .stat .v{font-size:17px}
     .wallets input.addr{flex-basis:100%}
   }
+  /* ── PC (데스크톱) ─────────────────────────────── */
+  @media (min-width:1024px){
+    body{font-size:15.5px;line-height:1.5}
+    .wrap{padding:6px 32px 88px}
+    .topbar-inner{padding:13px 32px}
+    .brand h1{font-size:17.5px}
+    .brand p{font-size:12px}
+    .logo{width:40px;height:40px;border-radius:12px;font-size:21px}
+
+    .summary{margin-top:24px;gap:14px}
+    .stat{padding:18px 20px}
+    .stat .k{font-size:12.5px}
+    .stat .v{font-size:26px;margin-top:8px}
+    .stat .s{font-size:11.5px;margin-top:4px}
+
+    .dash-main{
+      display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,29vw,420px);
+      gap:16px;align-items:start;margin-top:16px;
+    }
+    .dash-main-side{margin-top:0;gap:14px}
+
+    .chart-head{padding:14px 18px 12px}
+    .ch-price{font-size:20px}
+    .ch-legend{padding:9px 18px;font-size:12px;gap:16px}
+    #priceChart{height:400px}
+    #indChart{height:156px}
+    .ch-foot{padding:10px 18px 12px;font-size:11.5px}
+
+    .bias{padding:17px 18px}
+    .bias-top{font-size:12.5px}
+    .bias-bar{height:13px}
+    .bias-legend{font-size:12px;gap:14px;row-gap:9px;margin-top:11px}
+
+    .events.compact .evt-panel-head{padding:13px 17px 11px}
+    .events.compact .evt-list{max-height:462px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+    .events.compact .evt-row{
+      display:flex;flex-wrap:wrap;gap:4px 8px;padding:9px 16px;
+      font-size:11.5px;line-height:1.35;
+    }
+    .events.compact .evt-t{width:46px;flex:none;font-size:10.5px}
+    .events.compact .evt-w{flex:1 1 auto;min-width:0;font-size:12px}
+    .events.compact .evt-coin{font-size:11.5px}
+    .events.compact .evt-type{margin-left:auto;font-size:10px;padding:2px 6px}
+    .events.compact .evt-side{font-size:10px}
+    .events.compact .evt-side .side-pill{font-size:10px;padding:2px 6px}
+    .events.compact .evt-d{flex-basis:100%;text-align:right;font-size:11px}
+    .events.compact .evt-foot{padding:8px 17px}
+
+    .sec-head{margin:32px 0 13px}
+    .sec-head h2{font-size:15.5px}
+    .sec-head span{font-size:12px}
+
+    #coinList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;padding:8px 10px}
+    .coin-row{grid-template-columns:112px minmax(0,1fr) 176px;gap:14px;padding:11px 12px}
+    .coin-name{font-size:13.5px}
+    .coin-vals{font-size:12px}
+
+    .wallets{padding:16px 18px}
+    .wallets input.addr{flex:1 1 420px}
+
+    .controls{margin:0 0 14px}
+    .whales{gap:16px;align-items:start}
+    .whale-head{padding:15px 18px}
+    .whale-scope{padding:8px 18px 10px}
+    .wfill{padding:7px 18px 9px}
+    footer{margin-top:38px;font-size:11.5px}
+
+    /* 7열 포지션 표: 비율 고정으로 PC에서 칸이 고르게 퍼지도록 */
+    thead th{font-size:11px;padding:10px 12px}
+    tbody td{font-size:12.5px;padding:10px 12px}
+    .whale table{table-layout:fixed}
+    .whale th:nth-child(1),.whale td:nth-child(1){width:11%}
+    .whale th:nth-child(2),.whale td:nth-child(2){width:11%}
+    .whale th:nth-child(3),.whale td:nth-child(3){width:12%}
+    .whale th:nth-child(4),.whale td:nth-child(4){width:15%}
+    .whale th:nth-child(5),.whale td:nth-child(5){width:17%}
+    .whale th:nth-child(6),.whale td:nth-child(6){width:17%}
+    .whale th:nth-child(7),.whale td:nth-child(7){width:17%}
+  }
+  @media (min-width:1440px){
+    #priceChart{height:430px}
+    #indChart{height:164px}
+    .events.compact .evt-list{max-height:502px}
+  }
+  @media (min-width:1560px){
+    .whales{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .whale th,.whale td{padding-left:9px;padding-right:9px}
+  }
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important}
   }
@@ -448,6 +549,33 @@
 </div>
 
 <div class="wrap">
+
+  <!-- 요약 -->
+  <section class="summary" aria-label="전체 요약">
+    <div class="stat panel">
+      <div class="k">총 계좌가치</div>
+      <div class="v" id="sumAccount">—</div>
+      <div class="s" id="sumAccountSub">추적 중인 지갑 합산</div>
+    </div>
+    <div class="stat panel long">
+      <div class="k"><span class="swatch long"></span>총 롱 익스포저</div>
+      <div class="v" id="sumLong">—</div>
+      <div class="s" id="sumLongSub">LONG 포지션 평가액</div>
+    </div>
+    <div class="stat panel short">
+      <div class="k"><span class="swatch short"></span>총 숏 익스포저</div>
+      <div class="v" id="sumShort">—</div>
+      <div class="s" id="sumShortSub">SHORT 포지션 평가액</div>
+    </div>
+    <div class="stat panel">
+      <div class="k">총 미실현 손익</div>
+      <div class="v" id="sumPnl">—</div>
+      <div class="s" id="sumPnlSub">BTC·ETH 포지션 합산</div>
+    </div>
+  </section>
+
+  <div class="dash-main">
+    <div class="dash-main-primary">
 
   <!-- BTC 캔들 차트 + 고래 롱/숏 지표 -->
   <section class="panel chartpanel" id="chartPanel" aria-label="BTC 차트와 고래 롱 숏 지표">
@@ -483,30 +611,9 @@
     <div class="ch-foot" id="chFoot">차트를 불러오는 중입니다…</div>
   </section>
 
-  <!-- 요약 -->
-  <section class="summary" aria-label="전체 요약">
-    <div class="stat panel">
-      <div class="k">총 계좌가치</div>
-      <div class="v" id="sumAccount">—</div>
-      <div class="s" id="sumAccountSub">추적 중인 지갑 합산</div>
-    </div>
-    <div class="stat panel long">
-      <div class="k"><span class="swatch long"></span>총 롱 익스포저</div>
-      <div class="v" id="sumLong">—</div>
-      <div class="s" id="sumLongSub">LONG 포지션 평가액</div>
-    </div>
-    <div class="stat panel short">
-      <div class="k"><span class="swatch short"></span>총 숏 익스포저</div>
-      <div class="v" id="sumShort">—</div>
-      <div class="s" id="sumShortSub">SHORT 포지션 평가액</div>
-    </div>
-    <div class="stat panel">
-      <div class="k">총 미실현 손익</div>
-      <div class="v" id="sumPnl">—</div>
-      <div class="s" id="sumPnlSub">BTC·ETH 포지션 합산</div>
-    </div>
-  </section>
+    </div><!-- /dash-main-primary -->
 
+    <aside class="dash-main-side">
   <div class="bias panel">
     <div class="bias-top">
       <span>방향 비중 (Net Bias)</span>
@@ -524,35 +631,12 @@
     </div>
   </div>
 
-  <!-- 코인별 집계 -->
-  <div class="sec-head">
-    <h2>코인별 롱 · 숏 집계</h2>
-    <span id="coinSub">BTC·ETH 고래 합산</span>
-  </div>
-  <div class="panel coins" id="coinList">
-    <div class="empty">데이터를 불러오는 중입니다…</div>
-  </div>
-
-  <!-- 컨트롤 -->
-  <div class="controls">
-    <div class="seg" id="sideSeg" role="group" aria-label="포지션 방향 필터">
-      <button type="button" data-side="all" aria-pressed="true">전체</button>
-      <button type="button" data-side="long" aria-pressed="false">LONG</button>
-      <button type="button" data-side="short" aria-pressed="false">SHORT</button>
-    </div>
-    <div class="search">
-      <span class="ico">⌕</span>
-      <input id="coinSearch" type="search" placeholder="코인 검색 (예: BTC)" autocomplete="off" aria-label="코인 검색" />
-    </div>
-    <span class="count-pill" id="filterCount"></span>
-  </div>
-
   <!-- 포지션 변동 로그 -->
-  <div class="sec-head">
-    <h2>포지션 변동 로그</h2>
-    <span id="evtSub">5초 갱신마다 직전 스냅샷과 비교 · BTC·ETH</span>
-  </div>
-  <section class="panel events" id="evtPanel" aria-label="BTC·ETH 포지션 변동 로그">
+  <section class="panel events compact" id="evtPanel" aria-label="BTC·ETH 포지션 변동 로그">
+    <div class="evt-panel-head">
+      <h3>포지션 변동 로그</h3>
+      <span id="evtSub">5초 갱신마다 직전 스냅샷과 비교 · BTC·ETH</span>
+    </div>
     <div class="evt-list" id="evtList">
       <div class="empty">아직 기록된 변동이 없습니다.</div>
     </div>
@@ -561,6 +645,17 @@
       <button class="btn small ghost" id="evtClear" type="button">로그 지우기</button>
     </div>
   </section>
+    </aside>
+  </div><!-- /dash-main -->
+
+  <!-- 코인별 집계 -->
+  <div class="sec-head">
+    <h2>코인별 롱 · 숏 집계</h2>
+    <span id="coinSub">BTC·ETH 고래 합산</span>
+  </div>
+  <div class="panel coins" id="coinList">
+    <div class="empty">데이터를 불러오는 중입니다…</div>
+  </div>
 
   <!-- 지갑 관리 -->
   <div class="panel wallets">
@@ -581,6 +676,21 @@
     <button class="btn small toggle" id="hideEmptyBtn" type="button" aria-pressed="true"
       title="BTC·ETH 포지션이 0개인 지갑 카드를 숨깁니다">빈 지갑 숨기기</button>
   </div>
+
+  <!-- 컨트롤 -->
+  <div class="controls">
+    <div class="seg" id="sideSeg" role="group" aria-label="포지션 방향 필터">
+      <button type="button" data-side="all" aria-pressed="true">전체</button>
+      <button type="button" data-side="long" aria-pressed="false">LONG</button>
+      <button type="button" data-side="short" aria-pressed="false">SHORT</button>
+    </div>
+    <div class="search">
+      <span class="ico">⌕</span>
+      <input id="coinSearch" type="search" placeholder="코인 검색 (예: BTC)" autocomplete="off" aria-label="코인 검색" />
+    </div>
+    <span class="count-pill" id="filterCount"></span>
+  </div>
+
   <div class="whales" id="whaleList">
     <div class="panel empty">데이터를 불러오는 중입니다…</div>
   </div>
