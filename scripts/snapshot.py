@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""고래 모니터 1시간 스냅샷 — 하이퍼리퀴드 상위 고래 10곳의 BTC·ETH 롱/숏 노출을 기록합니다.
+"""고래 모니터 1시간 스냅샷 — 하이퍼리퀴드 상위 고래 20곳의 BTC·ETH 롱/숏 노출을 기록합니다.
 
 GitHub Actions(.github/workflows/snapshot.yml)가 매시 정각에 실행하고,
 결과를 data/snapshots.json 에 덧붙여 커밋합니다. 대시보드(index.html)는 이 파일을
@@ -274,13 +274,23 @@ def main() -> int:
             elif isinstance(old, dict):
                 doc.update({k: v for k, v in old.items() if k not in ("snapshots",)})
                 doc["snapshots"] = old.get("snapshots") or []
-                doc["wallets"] = wallets          # 지갑 목록은 항상 현재 기준으로 갱신
                 doc["version"] = 1
                 doc["scope"] = "BTC·ETH"
+                # 이번 실행의 지갑 목록과 파일에 적힌 목록을 비교하려고 잠시 보관
+                doc["prevWallets"] = old.get("wallets") or None
+                doc["wallets"] = wallets          # 지갑 목록은 항상 현재 기준으로 갱신
         except Exception as e:  # noqa: BLE001
             log(f"[warn] 기존 {os.path.basename(out_path)} 을 읽지 못해 새로 씁니다: {e}")
     snapshots = [s for s in doc["snapshots"] if isinstance(s, dict) and isinstance(s.get("ts"), (int, float))]
     snapshots.sort(key=lambda s: s["ts"])
+
+    # 지갑 목록이 바뀌면(예: 10 → 20곳 확장) 예전 목록으로 잰 값은 같은 지표가 아니므로 버리고
+    # 새 목록 기준으로 다시 쌓습니다. 대시보드도 목록이 다르면 스냅샷을 합치지 않습니다.
+    prev_wallets = doc.get("prevWallets")
+    if prev_wallets is not None and prev_wallets != wallets and snapshots:
+        log("[reset] 지갑 목록이 바뀌어(=%d곳 → %d곳) 기존 %d개 스냅샷을 비웁니다."
+            % (len(prev_wallets), len(wallets), len(snapshots)))
+        snapshots = []
 
     last = snapshots[-1] if snapshots else None
     if last and not args.force and (ts - last["ts"]) < DEDUPE_SEC * 1000:
@@ -298,6 +308,7 @@ def main() -> int:
     doc["snapshots"] = snapshots
     doc["updated"] = entry["iso"]
     doc["count"] = len(snapshots)
+    doc.pop("prevWallets", None)
 
     if args.dry_run:
         log(f"[dry-run] {len(snapshots)}개 항목 · 파일을 쓰지 않았습니다.")
