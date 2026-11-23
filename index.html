@@ -39,11 +39,11 @@
     font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
     -webkit-font-smoothing:antialiased;
     font-size:15px;
-    line-height:1.45;
+    line-height:1.5;
     min-height:100vh;
   }
   a{color:var(--accent);text-decoration:none}
-  .wrap{max-width:1440px;margin:0 auto;padding:0 20px 68px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px 72px}
 
   /* ── top bar ───────────────────────────────────── */
   .topbar{
@@ -53,7 +53,7 @@
     border-bottom:1px solid var(--line-soft);
   }
   .topbar-inner{
-    max-width:1440px;margin:0 auto;padding:12px 20px;
+    max-width:1180px;margin:0 auto;padding:12px 20px;
     display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   }
   .brand{display:flex;align-items:center;gap:11px;min-width:0}
@@ -116,25 +116,39 @@
   .swatch.long{background:var(--long)}
   .swatch.short{background:var(--short)}
 
-  .bias{margin-top:10px;padding:14px 15px}
-  .bias-top{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px}
+  .bias{margin-top:10px;padding:15px 16px}
+  .bias-top{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-bottom:2px}
   .bias-top b{color:var(--text);font-variant-numeric:tabular-nums}
+  .bias-block{padding-top:12px;margin-top:12px;border-top:1px dashed var(--line-soft)}
+  .bias-block.first{border-top:none;margin-top:9px;padding-top:0}
+  .bias-label{display:flex;align-items:baseline;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted-2);margin-bottom:7px}
+  .bias-label .t{font-weight:650;color:var(--muted);letter-spacing:.1px}
+  .bias-label .b{font-variant-numeric:tabular-nums;white-space:nowrap}
   .bias-bar{
-    height:12px;border-radius:999px;overflow:hidden;display:flex;
+    height:11px;border-radius:999px;overflow:hidden;display:flex;
     background:var(--line);border:1px solid var(--line-soft);
   }
   .bias-bar .l{background:linear-gradient(90deg,#12a271,#1fd48f)}
   .bias-bar .s{background:linear-gradient(90deg,#ff7189,#e04460)}
   .bias-bar .l,.bias-bar .s{transition:width .5s cubic-bezier(.4,0,.2,1)}
-  .bias-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:9px}
-  .bias-legend i{font-style:normal;font-variant-numeric:tabular-nums;color:var(--text)}
-  .bias-legend .scope-all{display:block;color:var(--muted-2);font-size:10.5px;margin-top:2px}
+  .bias-bar.slim{height:9px;border-style:dashed;background:#0c121b}
+  .bias-bar.slim .l{background:repeating-linear-gradient(45deg,#1fd48f 0 4px,rgba(31,212,143,.3) 4px 8px)}
+  .bias-bar.slim .s{background:repeating-linear-gradient(45deg,#ff5c78 0 4px,rgba(255,92,120,.3) 4px 8px)}
+  .bias-legend{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--muted);margin-top:8px}
+  .bias-legend > span{display:flex;align-items:center;gap:6px;min-width:0}
+  .bias-legend i{font-style:normal;font-variant-numeric:tabular-nums;color:var(--text);font-weight:650}
+  .bias-legend .n{color:var(--muted-2);font-size:10.5px;margin-left:auto;white-space:nowrap}
+  .bias-note{margin-top:7px;font-size:10.5px;color:var(--muted-2);font-variant-numeric:tabular-nums;line-height:1.5}
+  .bias-note b{color:var(--muted);font-weight:600}
+  .bias-foot{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line-soft);font-size:10.5px;color:var(--muted-2);font-variant-numeric:tabular-nums;line-height:1.55}
+  .bias-foot i{font-style:normal;color:var(--muted)}
+  .bias-foot .scope-all{display:block;margin-top:2px;color:var(--muted-2)}
 
   /* ── coin aggregation ──────────────────────────── */
   .coins{padding:6px 4px}
   .coin-row{
-    display:grid;grid-template-columns:96px 1fr 168px;gap:12px;align-items:center;
-    padding:9px 12px;border-bottom:1px solid var(--line-soft);
+    display:grid;grid-template-columns:92px minmax(0,1fr) 192px;gap:12px;align-items:center;
+    padding:10px 12px;border-bottom:1px solid var(--line-soft);
   }
   .coin-row:last-child{border-bottom:none}
   .coin-name{display:flex;align-items:center;gap:7px;font-weight:650;font-size:13px}
@@ -148,6 +162,8 @@
   .coin-vals .l{color:var(--long)}
   .coin-vals .s{color:var(--short)}
   .coin-vals .n{color:var(--muted-2);font-size:10.5px}
+  .coin-vals .cv-main{display:flex;justify-content:flex-end;gap:10px;white-space:nowrap}
+  .coin-vals .cv-sub{color:var(--muted-2);font-size:10.5px;margin-top:3px;white-space:nowrap}
 
   /* ── controls ──────────────────────────────────── */
   .controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:22px 0 12px}
@@ -200,17 +216,38 @@
   .hint.ok{color:var(--long)}
 
   /* ── whale card ────────────────────────────────── */
-  .whales{display:grid;gap:14px}
-  .whale{padding:0;overflow:hidden}
+  .whales{display:grid;gap:16px}
+  .whale{padding:0;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+  .whale:hover{border-color:#2b3a50}
   .whale-head{
-    display:flex;align-items:center;gap:11px;padding:14px 15px;
+    display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;
     border-bottom:1px solid var(--line-soft);
     background:linear-gradient(180deg,rgba(24,34,49,.85),rgba(17,24,35,0));
     flex-wrap:wrap;
   }
+  .whale-head:hover .whale-name h3{color:#a9c0ff}
   .whale-id{min-width:0;flex:1 1 220px}
   .whale-name{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .whale-name h3{margin:0;font-size:15px;letter-spacing:-.2px}
+  .whale-name h3{margin:0;font-size:15px;letter-spacing:-.2px;transition:color .15s}
+  .whale-content{display:grid;grid-template-columns:minmax(208px,266px) minmax(0,1fr)}
+  .whale-side{
+    display:flex;flex-direction:column;gap:11px;min-width:0;
+    padding:13px 16px 15px;border-right:1px solid var(--line-soft);
+    background:rgba(12,18,27,.22);
+  }
+  .whale-side .wfill{padding:0;border-bottom:none;background:transparent}
+  .whale-side .whale-scope{padding:0;border-bottom:none;background:transparent}
+  .whale-table{min-width:0;display:flex;flex-direction:column;justify-content:center}
+  .whale-open{
+    margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;
+    appearance:none;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:650;
+    color:#cfe0ff;background:rgba(91,140,255,.12);border:1px solid rgba(91,140,255,.3);
+    border-radius:9px;padding:8px 11px;text-align:left;transition:background .15s,border-color .15s;
+  }
+  .whale-open:hover{background:rgba(91,140,255,.2);border-color:rgba(91,140,255,.55)}
+  .whale-open span{font-weight:500;color:var(--muted);font-size:10.5px}
+  .whale-open span b{color:#cfe0ff;font-weight:700;font-size:11.5px}
+  .whale-open .arw{color:#a9c0ff;font-weight:700}
   .tag{
     font-size:10.5px;font-weight:650;color:#a9c0ff;
     background:rgba(91,140,255,.13);border:1px solid rgba(91,140,255,.25);
@@ -284,20 +321,20 @@
 
   table{width:100%;border-collapse:collapse}
   thead th{
-    text-align:right;font-size:10.5px;font-weight:600;color:var(--muted-2);
-    padding:9px 10px;border-bottom:1px solid var(--line-soft);white-space:nowrap;
+    text-align:right;font-size:11px;font-weight:600;color:var(--muted-2);letter-spacing:.1px;
+    padding:10px 12px;border-bottom:1px solid var(--line-soft);white-space:nowrap;
     background:rgba(12,18,27,.5);
   }
   thead th:first-child{text-align:left}
   thead th:nth-child(2){text-align:left}
   tbody td{
-    padding:9px 10px;border-bottom:1px solid var(--line-soft);
-    font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;
+    padding:12px 12px;border-bottom:1px solid var(--line-soft);
+    font-size:13px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;
   }
   tbody tr:last-child td{border-bottom:none}
   tbody tr:hover{background:rgba(91,140,255,.045)}
   td.coin{text-align:left;font-weight:650}
-  td.coin small{display:block;font-weight:400;font-size:10px;color:var(--muted-2)}
+  td.coin small{display:block;font-weight:400;font-size:10.5px;color:var(--muted-2);margin-top:2px}
   td.side{text-align:left}
   .side-pill{
     display:inline-block;font-size:10.5px;font-weight:750;letter-spacing:.3px;
@@ -362,15 +399,109 @@
   .evt-panel-head h3{margin:0;font-size:14px;letter-spacing:-.1px}
   .evt-panel-head span{font-size:11px;color:var(--muted-2);line-height:1.5}
 
+  /* ── 지갑 상세 모달 ─────────────────────────────── */
+  body.wm-open{overflow:hidden}
+  .modal{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:22px}
+  .modal[hidden]{display:none}
+  .modal-back{position:absolute;inset:0;background:rgba(4,7,11,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  .modal-card{
+    position:relative;display:flex;flex-direction:column;
+    width:min(960px,100%);max-height:calc(100vh - 44px);
+    background:linear-gradient(180deg,#121a26,#0e141d);
+    border:1px solid #253145;border-radius:16px;overflow:hidden;
+    box-shadow:0 30px 80px rgba(0,0,0,.6);
+    animation:wmIn .18s ease-out;
+  }
+  @keyframes wmIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .wm-head{
+    display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;
+    padding:18px 20px 16px;border-bottom:1px solid var(--line-soft);
+    background:linear-gradient(180deg,rgba(28,40,58,.85),rgba(18,26,38,0));
+  }
+  .wm-id{min-width:0;flex:1 1 250px}
+  .wm-title-row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .wm-title-row h3{margin:0;font-size:19px;letter-spacing:-.3px}
+  .wm-addr-row{display:flex;align-items:center;gap:7px;margin-top:6px;flex-wrap:wrap}
+  .wm-addr-row code{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .wm-head-stats{display:flex;gap:22px;flex-wrap:wrap}
+  .wm-head-stats .ws .k{font-size:10.5px;color:var(--muted-2)}
+  .wm-head-stats .ws .v{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+  .wm-close{
+    appearance:none;cursor:pointer;flex:none;width:32px;height:32px;border-radius:9px;
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    font-size:14px;line-height:1;display:grid;place-items:center;
+  }
+  .wm-close:hover{color:var(--text);border-color:#2b3a50;background:var(--panel-2)}
+  .wm-body{padding:18px 20px 22px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+  .wm-sec-head{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin:0 0 10px}
+  .wm-sec-head h4{margin:0;font-size:13.5px;letter-spacing:-.1px}
+  .wm-sec-head span{font-size:11px;color:var(--muted-2)}
+  .wm-sec-head .wm-right{margin-left:auto;font-size:11px;color:var(--muted-2);font-variant-numeric:tabular-nums}
+  .wm-sec + .wm-sec{margin-top:22px;padding-top:20px;border-top:1px solid var(--line-soft)}
+  .wm-pnl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .wm-tile{padding:14px 15px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+  .wm-tile .k{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .wm-tile .v{font-size:20px;font-weight:700;letter-spacing:-.4px;margin-top:7px;font-variant-numeric:tabular-nums}
+  .wm-tile .v.pos{color:var(--long)}
+  .wm-tile .v.neg{color:var(--short)}
+  .wm-tile .p{font-size:11.5px;margin-top:3px;font-variant-numeric:tabular-nums;color:var(--muted-2)}
+  .wm-tile .p.pos{color:var(--long)}
+  .wm-tile .p.neg{color:var(--short)}
+  .wm-tile .sub{font-size:10.5px;color:var(--muted-2);margin-top:6px;line-height:1.45;font-variant-numeric:tabular-nums}
+  .wm-note{margin-top:11px;font-size:11px;color:var(--muted-2);line-height:1.6}
+  .wm-note b{color:var(--muted);font-weight:600}
+  .wm-load{padding:16px;border:1px dashed var(--line);border-radius:12px;font-size:12px;color:var(--muted-2);text-align:center}
+  .wm-load.err{color:var(--short);border-color:rgba(255,92,120,.35);background:rgba(255,92,120,.06);line-height:1.6}
+  .wm-table{border:1px solid var(--line-soft);border-radius:12px;overflow:hidden}
+  .wm-table table{table-layout:auto}
+  .wm-table thead th{padding:10px 11px;font-size:10.5px;background:rgba(12,18,27,.55)}
+  .wm-table tbody td{padding:11px 11px;font-size:12.5px}
+  .wm-table td.liq small{display:block;font-size:10px;color:var(--muted-2);margin-top:2px}
+  .wm-table td.pnl .roe{font-size:10.5px}
+  .wm-other{margin-top:4px;border:1px solid var(--line-soft);border-radius:12px;overflow:hidden;background:rgba(12,18,27,.3)}
+  .wm-other > summary{
+    cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+    padding:12px 14px;font-size:12.5px;font-weight:650;color:var(--text);
+  }
+  .wm-other > summary::-webkit-details-marker{display:none}
+  .wm-other > summary::before{content:"▸";color:var(--muted-2);font-size:11px;transition:transform .15s}
+  .wm-other[open] > summary::before{transform:rotate(90deg)}
+  .wm-other > summary:hover{background:rgba(91,140,255,.06)}
+  .wm-other > summary .n{color:var(--muted-2);font-weight:500;font-size:11.5px}
+  .wm-other > summary .arw{margin-left:auto;font-size:11px;color:var(--muted-2)}
+  .wm-other .wm-table{border:none;border-radius:0;border-top:1px solid var(--line-soft)}
+  @media (max-width:760px){
+    .modal{padding:0}
+    .modal-card{width:100%;height:100%;max-height:100%;border-radius:0;border:none}
+    .wm-head{padding:14px 14px 12px;gap:10px}
+    .wm-title-row h3{font-size:17px}
+    .wm-body{padding:14px 14px 18px}
+    .wm-pnl{grid-template-columns:1fr 1fr;gap:9px}
+    .wm-tile{padding:12px}
+    .wm-tile .v{font-size:18px}
+    .wm-head-stats{gap:16px}
+    .wm-head-stats .ws .v{font-size:13.5px}
+    .wm-table table,.wm-table thead,.wm-table tbody,.wm-table tr,.wm-table td{display:block;width:100%}
+    .wm-table thead{display:none}
+    .wm-table tbody{display:grid;gap:8px;padding:10px}
+    .wm-table tbody tr{background:var(--bg-soft);border:1px solid var(--line-soft);border-radius:10px;padding:10px 11px}
+    .wm-table tbody td{display:flex;justify-content:space-between;align-items:center;gap:12px;border:none;padding:3px 0;text-align:right;white-space:normal}
+    .wm-table tbody td::before{content:attr(data-l);color:var(--muted-2);font-size:11px;flex:none;text-align:left}
+    .wm-table td.coin{padding-bottom:7px;border-bottom:1px solid var(--line-soft);margin-bottom:5px;font-size:13.5px}
+    .wm-table td.coin small{display:inline;margin-left:7px}
+    .wm-table td.side{justify-content:flex-start;gap:8px}
+  }
+
   /* ── footer ────────────────────────────────────── */
   footer{margin-top:30px;padding-top:16px;border-top:1px solid var(--line-soft);color:var(--muted-2);font-size:11.5px;line-height:1.7}
   footer b{color:var(--muted);font-weight:600}
 
   /* ── responsive ────────────────────────────────── */
   @media (max-width:1000px){
-    #priceChart{height:272px}
+    #priceChart{height:290px}
     .summary{grid-template-columns:repeat(2,1fr)}
-    .coin-row{grid-template-columns:82px 1fr 140px;gap:9px}
+    .coin-row{grid-template-columns:88px minmax(0,1fr) 168px;gap:10px}
+    .whale-content{grid-template-columns:minmax(190px,238px) minmax(0,1fr)}
   }
   @media (max-width:760px){
     body{font-size:14px}
@@ -388,13 +519,16 @@
     .coin-row .coin-name{grid-area:name}
     .coin-row .coin-bar{grid-area:bar}
     .coin-vals{grid-area:vals;text-align:left}
-    .coin-vals br{display:none}
-    .coin-vals .l,.coin-vals .s{margin-right:10px}
-    #priceChart{height:236px}
-    #indChart{height:104px}
+    .coin-vals .cv-main{flex-wrap:wrap;justify-content:flex-start;gap:3px 12px}
+    .coin-vals .cv-sub{margin-top:2px}
+    #priceChart{height:246px}
+    #indChart{height:112px}
     .ch-controls{margin-left:0;width:100%}
     .ch-legend{gap:10px;font-size:11px;padding:7px 12px}
     .ch-head-btn{display:none}
+    .whale-content{display:block}
+    .whale-side{border-right:none;border-bottom:1px solid var(--line-soft);padding:12px 15px 13px;gap:10px}
+    .whale-open{margin-top:2px}
     .whale-stats{margin-left:0;width:100%;gap:14px;padding-top:2px}
     .ws{text-align:left}
     .ws .v{font-size:13px}
@@ -435,43 +569,42 @@
   }
   /* ── PC (데스크톱) ─────────────────────────────── */
   @media (min-width:1024px){
-    body{font-size:15.5px;line-height:1.5}
-    .wrap{padding:6px 32px 88px}
-    .topbar-inner{padding:13px 32px}
+    body{font-size:15.5px;line-height:1.55}
+    .wrap{padding:10px 28px 96px}
+    .topbar-inner{padding:14px 28px}
     .brand h1{font-size:17.5px}
     .brand p{font-size:12px}
     .logo{width:40px;height:40px;border-radius:12px;font-size:21px}
 
-    .summary{margin-top:24px;gap:14px}
-    .stat{padding:18px 20px}
+    .summary{margin-top:28px;gap:16px}
+    .stat{padding:20px 22px}
     .stat .k{font-size:12.5px}
-    .stat .v{font-size:26px;margin-top:8px}
-    .stat .s{font-size:11.5px;margin-top:4px}
+    .stat .v{font-size:27px;margin-top:8px}
+    .stat .s{font-size:11.5px;margin-top:5px}
 
     .dash-main{
-      display:grid;grid-template-columns:minmax(0,1fr) clamp(340px,29vw,420px);
-      gap:16px;align-items:start;margin-top:16px;
+      display:grid;grid-template-columns:minmax(0,1fr) clamp(316px,27vw,356px);
+      gap:18px;align-items:start;margin-top:20px;
     }
-    .dash-main-side{margin-top:0;gap:14px}
+    .dash-main-side{margin-top:0;gap:16px}
 
     .chart-head{padding:14px 18px 12px}
     .ch-price{font-size:20px}
     .ch-legend{padding:9px 18px;font-size:12px;gap:16px}
-    #priceChart{height:400px}
-    #indChart{height:156px}
+    #priceChart{height:376px}
+    #indChart{height:148px}
     .ch-foot{padding:10px 18px 12px;font-size:11.5px}
 
-    .bias{padding:17px 18px}
-    .bias-top{font-size:12.5px}
-    .bias-bar{height:13px}
-    .bias-legend{font-size:12px;gap:14px;row-gap:9px;margin-top:11px}
-    .bias-legend > span:last-child{flex:1 1 100%;white-space:normal}
+    .bias{padding:16px 17px}
+    .bias-top{font-size:12px}
+    .bias-bar{height:11px}
+    .bias-legend{font-size:11.5px;gap:4px;margin-top:8px}
 
     .events.compact .evt-panel-head{padding:13px 17px 11px}
-    .events.compact .evt-list{max-height:462px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+    .events.compact .evt-list{max-height:330px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
     .events.compact .evt-row{
-      display:flex;flex-wrap:wrap;gap:4px 8px;padding:9px 16px;
-      font-size:11.5px;line-height:1.35;
+      display:flex;flex-wrap:wrap;gap:4px 8px;padding:10px 16px;
+      font-size:11.5px;line-height:1.4;
     }
     .events.compact .evt-t{width:46px;flex:none;font-size:10.5px}
     .events.compact .evt-w{flex:1 1 auto;min-width:0;font-size:12px}
@@ -482,12 +615,12 @@
     .events.compact .evt-d{flex-basis:100%;text-align:right;font-size:11px}
     .events.compact .evt-foot{padding:8px 17px}
 
-    .sec-head{margin:32px 0 13px}
+    .sec-head{margin:40px 0 14px}
     .sec-head h2{font-size:15.5px}
     .sec-head span{font-size:12px}
 
-    #coinList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 14px;padding:8px 10px}
-    .coin-row{grid-template-columns:112px minmax(0,1fr) 176px;gap:14px;padding:11px 12px}
+    #coinList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 16px;padding:8px 10px}
+    .coin-row{grid-template-columns:104px minmax(0,1fr) 186px;gap:14px;padding:12px 12px}
     .coin-name{font-size:13.5px}
     .coin-vals{font-size:12px}
 
@@ -495,32 +628,28 @@
     .wallets input.addr{flex:1 1 420px}
 
     .controls{margin:0 0 14px}
-    .whales{gap:16px;align-items:start}
-    .whale-head{padding:15px 18px}
-    .whale-scope{padding:8px 18px 10px}
-    .wfill{padding:7px 18px 9px}
-    footer{margin-top:38px;font-size:11.5px}
+    .whales{gap:18px;align-items:start}
+    .whale-head{padding:16px 20px}
+    .whale-name h3{font-size:16px}
+    .whale-side{padding:15px 18px 17px}
+    footer{margin-top:44px;font-size:11.5px}
 
     /* 7열 포지션 표: 비율 고정으로 PC에서 칸이 고르게 퍼지도록 */
-    thead th{font-size:11px;padding:10px 12px}
-    tbody td{font-size:12.5px;padding:10px 12px}
+    thead th{font-size:11.5px;padding:12px 14px}
+    tbody td{font-size:13px;padding:14px 14px}
     .whale table{table-layout:fixed}
-    .whale th:nth-child(1),.whale td:nth-child(1){width:11%}
+    .whale th:nth-child(1),.whale td:nth-child(1){width:12%}
     .whale th:nth-child(2),.whale td:nth-child(2){width:11%}
-    .whale th:nth-child(3),.whale td:nth-child(3){width:12%}
+    .whale th:nth-child(3),.whale td:nth-child(3){width:11%}
     .whale th:nth-child(4),.whale td:nth-child(4){width:15%}
-    .whale th:nth-child(5),.whale td:nth-child(5){width:17%}
+    .whale th:nth-child(5),.whale td:nth-child(5){width:16%}
     .whale th:nth-child(6),.whale td:nth-child(6){width:17%}
-    .whale th:nth-child(7),.whale td:nth-child(7){width:17%}
+    .whale th:nth-child(7),.whale td:nth-child(7){width:18%}
   }
   @media (min-width:1440px){
-    #priceChart{height:430px}
-    #indChart{height:164px}
-    .events.compact .evt-list{max-height:502px}
-  }
-  @media (min-width:1180px){
-    .whales{grid-template-columns:repeat(2,minmax(0,1fr))}
-    .whale th,.whale td{padding-left:9px;padding-right:9px}
+    #priceChart{height:400px}
+    #indChart{height:152px}
+    .events.compact .evt-list{max-height:356px}
   }
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important}
@@ -616,21 +745,41 @@
     </div><!-- /dash-main-primary -->
 
     <aside class="dash-main-side">
-  <div class="bias panel">
+  <div class="bias panel" aria-label="롱·숏 집계: 포지션 사이즈 기준과 계좌 수 기준">
     <div class="bias-top">
       <span>방향 비중 (Net Bias)</span>
       <span id="biasNet">—</span>
     </div>
-    <div class="bias-bar" role="img" aria-label="롱 대 숏 비중">
-      <div class="l" id="biasLong" style="width:50%"></div>
-      <div class="s" id="biasShort" style="width:50%"></div>
+
+    <!-- ① 포지션 사이즈(익스포저) 기준 -->
+    <div class="bias-block first">
+      <div class="bias-label"><span class="t">① 포지션 사이즈(익스포저)</span><span class="b">평가액 합산</span></div>
+      <div class="bias-bar" role="img" aria-label="포지션 사이즈 기준 롱 대 숏 비중">
+        <div class="l" id="biasLong" style="width:50%"></div>
+        <div class="s" id="biasShort" style="width:50%"></div>
+      </div>
+      <div class="bias-legend">
+        <span><span class="swatch long"></span> 롱 <i id="biasLongPct">—</i> <span class="n" id="biasLongUsd">—</span></span>
+        <span><span class="swatch short"></span> 숏 <i id="biasShortPct">—</i> <span class="n" id="biasShortUsd">—</span></span>
+      </div>
+      <div class="bias-note">총 <b id="biasSizeTotal">—</b> · 포지션 <b id="biasCount">—</b></div>
     </div>
-    <div class="bias-legend">
-      <span><span class="swatch long"></span> 롱 <i id="biasLongPct">—</i></span>
-      <span><span class="swatch short"></span> 숏 <i id="biasShortPct">—</i></span>
-      <span>포지션 <i id="biasCount">—</i></span>
-      <span>BTC·ETH 노출 비중 <i id="biasScope">—</i></span>
+
+    <!-- ② 계좌 수(지갑) 기준 -->
+    <div class="bias-block">
+      <div class="bias-label"><span class="t">② 계좌 수(지갑)</span><span class="b">순노출 부호 기준</span></div>
+      <div class="bias-bar slim" role="img" aria-label="계좌 수 기준 롱 대 숏 비중">
+        <div class="l" id="biasAccLong" style="width:50%"></div>
+        <div class="s" id="biasAccShort" style="width:50%"></div>
+      </div>
+      <div class="bias-legend">
+        <span><span class="swatch long"></span> 순 롱 <i id="biasAccLongPct">—</i> <span class="n" id="biasAccLongN">—</span></span>
+        <span><span class="swatch short"></span> 순 숏 <i id="biasAccShortPct">—</i> <span class="n" id="biasAccShortN">—</span></span>
+      </div>
+      <div class="bias-note" id="biasAccNote">롱 보유 — · 숟 보유 —</div>
     </div>
+
+    <div class="bias-foot">BTC·ETH 노출 비중 <i id="biasScope">—</i></div>
   </div>
 
   <!-- 포지션 변동 로그 -->
@@ -700,6 +849,12 @@
   <footer>
     <div><b>데이터 출처</b> Hyperliquid 공개 API (<code>api.hyperliquid.xyz/info</code>) ·
       차트는 TradingView Lightweight Charts · 5초마다 자동 갱신</div>
+    <div><b>롱·숏 집계</b> 방향 비중 패널은 두 기준을 나누어 보여줍니다. ① <b>포지션 사이즈(익스포저)</b>는 BTC·ETH 포지션 평가액 합산 비중이고,
+      ② <b>계좌 수(지갑)</b>는 각 지갑의 BTC·ETH 순노출(롱 평가액 − 숏 평가액) 부호를 기준으로 셀니다. 한 지갑이 롱·숏을 함께 보유한 경우도 있어
+      '롱 포지션 보유 / 숏 보유' 곳수를 함께 표기합니다. 코인별 집계의 막대도 사이즈 기준이며, 계좌 수는 숫자로 따로 표기합니다.</div>
+    <div><b>지갑 상세</b> 고래 카드나 <b>상세 보기</b>를 누르면 누적 손익(전체·30일·7일·24시간, Hyperliquid <code>portfolio</code> API)과
+      BTC·ETH 상세 포지션(방향·레버리지/교차·격리·수량·규모·진입가·청산가와 거리·미실현 손익·ROE·펀딩)을 볼 수 있고,
+      접어 둔 <b>다른 코인 포지션</b> 목록까지 펼쳐 볼 수 있습니다. 누적 손익은 1분간 캐시하고, 요청이 몰리면(429) 잠시 뒤 자동으로 다시 시도합니다.</div>
     <div><b>표시 범위</b> 포지션 표·요약·코인 집계·차트 지표는 <b>BTC·ETH</b> 포지션만 집계합니다(다른 코인 포지션은 표시하지 않음).
       각 지갑 카드에는 <b>전체 포지션 개수와 BTC·ETH 비중</b>을 함께 표시해, 그 지갑이 다른 코인도 보유 중인지 바로 알 수 있습니다.
       BTC·ETH 포지션이 0개인 지갑은 <b>빈 지갑 숨기기</b>로 감출 수 있습니다(기본 켜짐).</div>
@@ -714,6 +869,28 @@
     <div><b>기준</b> 계좌가치는 <code>marginSummary.accountValue</code>, 익스포저는 포지션 평가액(절대값) 합산입니다. 교차 마진 계정은 청산가가 매우 멀게 계산되어 “원거리”로 표시됩니다.</div>
     <div><b>주의</b> 온체인 지갑 데이터는 실시간으로 바뀌며, 같은 주소가 여러 전략·봇을 함께 돌릴 수 있습니다. 투자 판단의 참고용으로만 사용하세요.</div>
   </footer>
+</div>
+
+<!-- 지갑 상세 모달: 누적 손익 + 세부 포지션 -->
+<div class="modal" id="whaleModal" hidden>
+  <div class="modal-back" data-wm-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="wmTitle">
+    <div class="wm-head">
+      <div class="wm-id">
+        <div class="wm-title-row">
+          <h3 id="wmTitle">—</h3>
+          <span class="tag" id="wmTag" hidden></span>
+        </div>
+        <div class="wm-addr-row">
+          <code id="wmAddr"></code>
+          <button class="copy" id="wmCopy" type="button">복사</button>
+        </div>
+      </div>
+      <div class="wm-head-stats" id="wmHeadStats"></div>
+      <button class="wm-close" id="wmClose" type="button" aria-label="상세 닫기">✕</button>
+    </div>
+    <div class="wm-body" id="wmBody"></div>
+  </div>
 </div>
 
 <script>
@@ -811,13 +988,19 @@
     sumPnl: $("sumPnl"), sumPnlSub: $("sumPnlSub"),
     biasNet: $("biasNet"), biasLong: $("biasLong"), biasShort: $("biasShort"),
     biasLongPct: $("biasLongPct"), biasShortPct: $("biasShortPct"), biasCount: $("biasCount"),
+    biasLongUsd: $("biasLongUsd"), biasShortUsd: $("biasShortUsd"), biasSizeTotal: $("biasSizeTotal"),
+    biasAccLong: $("biasAccLong"), biasAccShort: $("biasAccShort"),
+    biasAccLongPct: $("biasAccLongPct"), biasAccShortPct: $("biasAccShortPct"),
+    biasAccLongN: $("biasAccLongN"), biasAccShortN: $("biasAccShortN"), biasAccNote: $("biasAccNote"),
     coinList: $("coinList"), coinSub: $("coinSub"),
     coinSearch: $("coinSearch"), filterCount: $("filterCount"),
     newAddr: $("newAddr"), newLabel: $("newLabel"), addBtn: $("addBtn"), resetBtn: $("resetBtn"),
     chips: $("chips"), walletHint: $("walletHint"),
     whaleList: $("whaleList"), whaleSub: $("whaleSub"),
     hideEmptyBtn: $("hideEmptyBtn"), biasScope: $("biasScope"),
-    evtList: $("evtList"), evtSub: $("evtSub"), evtClear: $("evtClear")
+    evtList: $("evtList"), evtSub: $("evtSub"), evtClear: $("evtClear"),
+    wm: $("whaleModal"), wmTitle: $("wmTitle"), wmTag: $("wmTag"), wmAddr: $("wmAddr"),
+    wmCopy: $("wmCopy"), wmClose: $("wmClose"), wmBody: $("wmBody"), wmHeadStats: $("wmHeadStats")
   };
 
   /* ───────────── helpers ───────────── */
@@ -1028,6 +1211,8 @@
         liq: num(p.liquidationPx),
         upnl: num(p.unrealizedPnl),
         roe: num(p.returnOnEquity),
+        fund: p.cumFunding && p.cumFunding.sinceOpen != null ? num(p.cumFunding.sinceOpen) : null,
+        fundAll: p.cumFunding && p.cumFunding.allTime != null ? num(p.cumFunding.allTime) : null,
         mark: markOf(p.coin)
       });
     }
@@ -1135,7 +1320,9 @@
 
   /* ───────────── aggregation ───────────── */
   function aggregate() {
-    var acc = { accountValue: 0, longExp: 0, shortExp: 0, upnl: 0, posCount: 0, ok: 0, err: 0, totalNtl: 0, allExp: 0, allCount: 0 };
+    var acc = { accountValue: 0, longExp: 0, shortExp: 0, upnl: 0, posCount: 0, ok: 0, err: 0,
+      totalNtl: 0, allExp: 0, allCount: 0,
+      holdLong: 0, holdShort: 0, netLong: 0, netShort: 0, netFlat: 0 };
     var coins = {};
     wallets.forEach(function (w) {
       var d = cache[w.address];
@@ -1149,19 +1336,33 @@
       var allPs = allPositionsOf(d.state);
       acc.allCount += allPs.length;
       for (var j = 0; j < allPs.length; j++) acc.allExp += allPs[j].value;
+      /* 지갑 단위 집계(계좌 수 기준): 순노출 = 롱 평가액 − 숏 평가액 */
+      var net = 0, hasL = false, hasS = false;
       for (var i = 0; i < ps.length; i++) {
         var p = ps[i];
         acc.posCount++;
-        if (p.isLong) acc.longExp += p.value; else acc.shortExp += p.value;
-        var c = coins[p.coin] || (coins[p.coin] = { coin: p.coin, long: 0, short: 0, upnl: 0, n: 0, mark: p.mark });
-        if (p.isLong) c.long += p.value; else c.short += p.value;
+        if (p.isLong) { acc.longExp += p.value; net += p.value; hasL = true; }
+        else { acc.shortExp += p.value; net -= p.value; hasS = true; }
+        var c = coins[p.coin] || (coins[p.coin] = { coin: p.coin, long: 0, short: 0, upnl: 0, n: 0, mark: p.mark, ln: {}, sn: {} });
+        if (p.isLong) { c.long += p.value; c.ln[w.address] = 1; } else { c.short += p.value; c.sn[w.address] = 1; }
         c.upnl += p.upnl;
         c.n++;
         if (!c.mark) c.mark = p.mark;
       }
+      if (hasL) acc.holdLong++;
+      if (hasS) acc.holdShort++;
+      if (net > 0) acc.netLong++;
+      else if (net < 0) acc.netShort++;
+      else acc.netFlat++;
     });
-    acc.coins = Object.keys(coins).map(function (k) { return coins[k]; })
-      .sort(function (a, b) { return (b.long + b.short) - (a.long + a.short); });
+    acc.coins = Object.keys(coins).map(function (k) {
+      var c = coins[k];
+      c.longN = Object.keys(c.ln).length;
+      c.shortN = Object.keys(c.sn).length;
+      delete c.ln;
+      delete c.sn;
+      return c;
+    }).sort(function (a, b) { return (b.long + b.short) - (a.long + a.short); });
     return acc;
   }
 
@@ -1318,11 +1519,27 @@
     el.sumPnl.style.color = agg.upnl > 0 ? "var(--long)" : agg.upnl < 0 ? "var(--short)" : "";
     el.sumPnlSub.textContent = agg.posCount + "개 포지션 · " + fmtClock(lastUpdate) + " 기준";
 
+    /* ① 포지션 사이즈(익스포저) 기준 */
     el.biasLong.style.width = longPct.toFixed(2) + "%";
     el.biasShort.style.width = (100 - longPct).toFixed(2) + "%";
-    el.biasLongPct.textContent = longPct.toFixed(1) + "% · " + fmtUsd(agg.longExp, { compact: true });
-    el.biasShortPct.textContent = (100 - longPct).toFixed(1) + "% · " + fmtUsd(agg.shortExp, { compact: true });
+    el.biasLongPct.textContent = longPct.toFixed(1) + "%";
+    el.biasShortPct.textContent = (100 - longPct).toFixed(1) + "%";
+    el.biasLongUsd.textContent = fmtUsd(agg.longExp, { compact: true });
+    el.biasShortUsd.textContent = fmtUsd(agg.shortExp, { compact: true });
+    el.biasSizeTotal.textContent = fmtUsd(totalExp, { compact: true });
     el.biasCount.textContent = agg.posCount + "개";
+
+    /* ② 계좌 수(지갑) 기준 — 순노출이 0인 계좌는 비율에서 제외 */
+    var accTotal = agg.netLong + agg.netShort;
+    var accLongPct = accTotal > 0 ? (agg.netLong / accTotal) * 100 : 50;
+    el.biasAccLong.style.width = accLongPct.toFixed(2) + "%";
+    el.biasAccShort.style.width = (100 - accLongPct).toFixed(2) + "%";
+    el.biasAccLongPct.textContent = accTotal ? Math.round(accLongPct) + "%" : "—";
+    el.biasAccShortPct.textContent = accTotal ? Math.round(100 - accLongPct) + "%" : "—";
+    el.biasAccLongN.textContent = agg.netLong + "곳";
+    el.biasAccShortN.textContent = agg.netShort + "곳";
+    el.biasAccNote.innerHTML = "롱 포지션 보유 <b>" + agg.holdLong + "곳</b> · 숏 보유 <b>" + agg.holdShort + "곳</b>" +
+      (agg.netFlat ? " · 중립 " + agg.netFlat + "곳" : "") + " / 조회 " + agg.ok + "곳";
     var scopePct = agg.allExp > 0 ? (totalExp / agg.allExp) * 100 : 0;
     el.biasScope.innerHTML = scopePct.toFixed(1) + "% · " + fmtUsd(totalExp, { compact: true }) +
       '<span class="scope-all"> / 전체 ' + fmtUsd(agg.allExp, { compact: true }) + " (" + agg.allCount + "개 중 " + agg.posCount + "개)</span>";
@@ -1334,6 +1551,7 @@
     renderCoins(agg);
     renderWhales();
     renderChips();
+    if (WM.open) wmRefresh();
   }
 
   function renderCoins(agg) {
@@ -1346,7 +1564,8 @@
       if (filterSide === "short" && c.short <= 0) return false;
       return true;
     });
-    el.coinSub.textContent = SCOPE_TEXT + " 고래 합산" + (filterCoin ? " · “" + filterCoin + "” 필터" : "") + " · " + list.length + "개 코인";
+    el.coinSub.textContent = SCOPE_TEXT + " 고래 합산 · 막대는 포지션 사이즈(익스포저) 기준 · " + list.length + "개 코인" +
+      (filterCoin ? " · “" + filterCoin + "” 필터" : "");
     if (!list.length) {
       el.coinList.innerHTML = '<div class="empty">조건에 맞는 코인이 없습니다.</div>';
       return;
@@ -1367,9 +1586,9 @@
         '<div class="s" style="width:' + (100 - lp).toFixed(2) + '%"></div>' +
         "</div>" +
         '<div class="coin-vals">' +
-        '<span class="l">L ' + fmtUsd(c.long, { compact: true }) + "</span><br>" +
-        '<span class="s">S ' + fmtUsd(c.short, { compact: true }) + "</span> " +
-        '<span class="n">· ' + c.n + "건</span>" +
+        '<div class="cv-main"><span class="l">L ' + fmtUsd(c.long, { compact: true }) + '</span>' +
+        '<span class="s">S ' + fmtUsd(c.short, { compact: true }) + "</span></div>" +
+        '<div class="cv-sub">롱 ' + c.longN + "곳 · 숏 " + c.shortN + "곳 · " + c.n + "건</div>" +
         "</div>" +
         "</div>";
     }).join("");
@@ -1393,23 +1612,25 @@
     var shown = 0, total = 0, visible = 0, hidden = 0;
     var html = wallets.map(function (w) {
       var d = cache[w.address];
-      var head =
-        '<div class="whale-head">' +
+      var addrAttr = esc(w.address);
+      var headOpen =
+        '<div class="whale-head" data-open="' + addrAttr + '" role="button" tabindex="0" ' +
+        'aria-label="' + esc(w.label) + ' 지갑 상세 보기 (누적 손익·세부 포지션)">' +
         '<div class="whale-id">' +
         '<div class="whale-name"><h3>' + esc(w.label) + "</h3>" +
         (w.tag ? '<span class="tag">' + esc(w.tag) + "</span>" : "") + "</div>" +
         '<span class="addr"><code>' + esc(w.address) + "</code>" +
-        '<button class="copy" type="button" data-copy="' + esc(w.address) + '">복사</button></span>' +
+        '<button class="copy" type="button" data-copy="' + addrAttr + '">복사</button></span>' +
         "</div>";
 
       if (!d) {
         visible++;
-        return '<div class="panel whale">' + head + "</div>" +
+        return '<div class="panel whale">' + headOpen + "</div>" +
           '<div class="errline">불러오는 중…</div></div>';
       }
       if (!d.ok) {
         visible++;
-        return '<div class="panel whale">' + head + "</div>" +
+        return '<div class="panel whale">' + headOpen + "</div>" +
           '<div class="errline">조회 실패: ' + esc(d.error || "알 수 없는 오류") + " (다음 갱신에 다시 시도합니다)</div></div>";
       }
 
@@ -1441,7 +1662,7 @@
           (fr.capped ? '<span class="cap">10,000건 한도</span>' : '')) +
         "</div>";
 
-      head +=
+      var head = headOpen +
         '<div class="whale-stats">' +
         '<div class="ws"><div class="k">계좌가치</div><div class="v">' + fmtUsd(accVal, { compact: true }) + "</div></div>" +
         '<div class="ws"><div class="k">미실현 손익</div><div class="v ' + (upnl > 0 ? "pos" : upnl < 0 ? "neg" : "") + '">' +
@@ -1488,7 +1709,16 @@
           "<th>코인</th><th>방향</th><th>레버리지</th><th>포지션 규모</th><th>진입가</th><th>청산가</th><th>미실현 손익</th>" +
           "</tr></thead><tbody>" + rows + "</tbody></table>";
       }
-      return '<div class="panel whale">' + head + scopeLine + body + "</div>";
+
+      var side =
+        '<div class="whale-side">' + scopeLine +
+        '<button class="whale-open" type="button" data-open="' + addrAttr + '" aria-label="' + esc(w.label) + ' 지갑 상세 보기">' +
+        '<span><b>상세 보기</b> · 누적 손익 + 전체 포지션</span><span class="arw">→</span>' +
+        "</button></div>";
+
+      return '<div class="panel whale" data-addr="' + addrAttr + '">' + head +
+        '<div class="whale-content">' + side +
+        '<div class="whale-table">' + body + "</div></div></div>";
     }).join("");
 
     if (html) el.whaleList.innerHTML = html;
@@ -1498,7 +1728,7 @@
     var sub = wallets.length + "개 지갑";
     if (hideEmpty && hidden) sub += " · " + visible + "곳 표시(빈 지갑 " + hidden + "곳 숨김)";
     sub += " · " + (filterSide === "all" ? "" : (filterSide === "long" ? "LONG " : "SHORT ")) +
-      shown + "/" + total + "개 포지션 표시";
+      shown + "/" + total + "개 포지션 표시 · 카드를 누르면 상세";
     el.whaleSub.textContent = sub;
     el.filterCount.textContent = "표시 " + shown + " / 전체 " + total;
 
@@ -1506,9 +1736,302 @@
     el.hideEmptyBtn.innerHTML = "빈 지갑 숨기기" + (hideEmpty && hidden ? " <b>" + hidden + "</b>" : "");
 
     Array.prototype.forEach.call(el.whaleList.querySelectorAll("[data-copy]"), function (btn) {
-      btn.addEventListener("click", function () { copyText(btn.getAttribute("data-copy"), btn); });
+      btn.addEventListener("click", function (e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        copyText(btn.getAttribute("data-copy"), btn);
+      });
+    });
+    Array.prototype.forEach.call(el.whaleList.querySelectorAll("[data-open]"), function (node) {
+      node.addEventListener("click", function (e) {
+        if (e && e.target && e.target.closest && e.target.closest("[data-copy]")) return;
+        if (e && e.stopPropagation) e.stopPropagation();
+        openWhale(node.getAttribute("data-open"));
+      });
+      node.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+          e.preventDefault();
+          openWhale(node.getAttribute("data-open"));
+        }
+      });
     });
   }
+
+  /* ───────────── 지갑 상세 모달 (누적 손익 + 세부 포지션) ───────────── */
+  var WM = { addr: null, open: false, port: {}, pending: {}, otherOpen: false, lastFocus: null };
+  var PORT_TTL = 60000;        // 정상 응답은 1분 재사용
+  var PORT_ERR_TTL = 15000;    // 실패는 15초 뒤 다시 시도
+
+  var WM_PERIODS = [
+    { key: "allTime", label: "전체 누적" },
+    { key: "month", label: "30일" },
+    { key: "week", label: "7일" },
+    { key: "day", label: "24시간" }
+  ];
+
+  function wmWallet(addr) {
+    for (var i = 0; i < wallets.length; i++) if (wallets[i].address === addr) return wallets[i];
+    return null;
+  }
+
+  /* Hyperliquid info API: { type: "portfolio", user } → [ [period, { accountValueHistory, pnlHistory, vlm }], … ] */
+  function getPortfolio(addr, force) {
+    var c = WM.port[addr], now = Date.now();
+    if (!force && c && ((c.ok && now - c.at < PORT_TTL) || (!c.ok && now - c.at < PORT_ERR_TTL))) {
+      return Promise.resolve(c);
+    }
+    if (WM.pending[addr]) return WM.pending[addr];
+    var p = post({ type: "portfolio", user: addr }).then(function (data) {
+      if (!Array.isArray(data)) throw new Error("응답 형식 오류");
+      WM.port[addr] = { ok: true, data: data, at: Date.now(), err: null };
+      return WM.port[addr];
+    }).catch(function (err) {
+      WM.port[addr] = { ok: false, data: null, at: Date.now(), err: String(err && err.message ? err.message : err) };
+      return WM.port[addr];
+    });
+    WM.pending[addr] = p;
+    var done = function () { delete WM.pending[addr]; };
+    p.then(done, done);
+    return p;
+  }
+
+  function wmPeriods(data) {
+    var map = {};
+    (data || []).forEach(function (row) {
+      if (!Array.isArray(row) || !row[0]) return;
+      map[row[0]] = row[1] || {};
+    });
+    return WM_PERIODS.map(function (d) {
+      var p = map[d.key] || null;
+      var ph = (p && p.pnlHistory) || [];
+      var ah = (p && p.accountValueHistory) || [];
+      var pnl = ph.length ? num(ph[ph.length - 1][1]) : null;
+      var start = ah.length ? num(ah[0][1]) : 0;
+      var end = ah.length ? num(ah[ah.length - 1][1]) : 0;
+      var pct = (pnl != null && start > 0) ? (pnl / start) * 100 : null;
+      var perpKey = "perp" + d.key.charAt(0).toUpperCase() + d.key.slice(1);
+      var perp = map[perpKey];
+      var perpPnl = perp && perp.pnlHistory && perp.pnlHistory.length
+        ? num(perp.pnlHistory[perp.pnlHistory.length - 1][1]) : null;
+      return {
+        key: d.key, label: d.label, pnl: pnl, pct: pct, start: start, end: end,
+        from: ph.length ? ph[0][0] : (ah.length ? ah[0][0] : null),
+        perp: perpPnl,
+        vlm: p && p.vlm ? num(p.vlm) : 0
+      };
+    });
+  }
+
+  function fmtDay(ms) {
+    if (!ms) return "";
+    var d = new Date(ms);
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "." + p(d.getMonth() + 1) + "." + p(d.getDate());
+  }
+
+  function wmPnlHtml(addr) {
+    var c = WM.port[addr];
+    if (!c || (c.pending && !c.at)) return '<div class="wm-load">누적 손익을 불러오는 중…</div>';
+    if (!c.ok) {
+      var msg = c.err || "";
+      var is429 = /429/.test(msg);
+      return '<div class="wm-load err">' + (is429
+        ? "요청 한도(429)에 걸려 누적 손익을 불러오지 못했습니다. 잠시 뒤 자동으로 다시 시도합니다."
+        : "누적 손익을 불러오지 못했습니다: " + esc(msg) + " · 잠시 뒤 자동으로 다시 시도합니다.") + "</div>";
+    }
+    var rows = wmPeriods(c.data);
+    return '<div class="wm-pnl">' + rows.map(function (r) {
+      var cls = r.pnl > 0 ? "pos" : r.pnl < 0 ? "neg" : "";
+      var v = r.pnl == null ? "—" : fmtUsd(r.pnl, { signed: true, compact: true });
+      var p = r.pct == null ? "" : (r.pct < 0 ? "−" : "+") + Math.abs(r.pct).toFixed(1) + "%";
+      return '<div class="wm-tile">' +
+        '<div class="k">' + r.label + "</div>" +
+        '<div class="v ' + cls + '">' + v + "</div>" +
+        '<div class="p ' + cls + '">' + (p ? p + " · 시작가 대비" : "—") + "</div>" +
+        '<div class="sub">' + (r.perp == null ? "" : "선물 " + fmtUsd(r.perp, { signed: true, compact: true }) + "<br>") +
+        "시작 " + fmtUsd(r.start, { compact: true }) + " · " + fmtDay(r.from) + "~" + "</div>" +
+        "</div>";
+    }).join("") + "</div>" +
+      '<div class="wm-note">Hyperliquid <b>portfolio</b> API의 기간별 누적 손익(pnlHistory 마지막 값)입니다. ' +
+      "시작가 대비 %는 그 구간 시작 계좌가치로 나눈 값이고, 선물 표기는 perp 계정 기준입니다.</div>";
+  }
+
+  function liqInfo(p) {
+    var mark = p.mark || p.entry;
+    if (!p.liq || !isFinite(p.liq)) return { text: "—", sub: "", warn: false };
+    if (!mark) return { text: fmtPrice(p.liq), sub: "", warn: false };
+    var d = (p.liq - mark) / mark * 100;
+    var far = Math.abs(d) > 500;
+    return {
+      text: fmtPrice(p.liq),
+      sub: far ? "원거리(" + (d > 0 ? "+" : "−") + Math.abs(d).toFixed(0) + "%)" :
+        "현재가 " + (d > 0 ? "+" : "−") + Math.abs(d).toFixed(1) + "%",
+      warn: !far && Math.abs(d) < 8
+    };
+  }
+
+  function wmPosRow(p) {
+    var pnlCls = p.upnl > 0 ? "pos" : p.upnl < 0 ? "neg" : "";
+    var liq = liqInfo(p);
+    var fund = p.fund == null ? "—" : fmtUsd(p.fund, { signed: true, compact: true });
+    var fundTitle = p.fundAll == null ? "" : "전체 누적 펀딩 " + fmtUsd(p.fundAll, { signed: true, compact: true });
+    return "<tr>" +
+      '<td class="coin" data-l="코인">' + esc(p.coin) +
+      (p.mark ? "<small>" + fmtPrice(p.mark) + "</small>" : "") + "</td>" +
+      '<td class="side" data-l="방향"><span class="side-pill ' + (p.isLong ? "long" : "short") + '">' +
+      (p.isLong ? "LONG" : "SHORT") + "</span></td>" +
+      '<td data-l="레버리지"><span class="lev">' + (p.lev ? p.lev + "x" : "—") + " · " +
+      (p.levType === "isolated" ? "격리" : "교차") + "</span></td>" +
+      '<td data-l="수량">' + fmtSize(Math.abs(p.size)) + " " + esc(p.coin) + "</td>" +
+      '<td data-l="포지션 규모">' + fmtUsd(p.value, { compact: true }) + "</td>" +
+      '<td data-l="진입가">' + fmtPrice(p.entry) + "</td>" +
+      '<td class="liq' + (liq.warn ? " warn" : "") + '" data-l="청산가">' + liq.text +
+      (liq.sub ? "<small>" + liq.sub + "</small>" : "") + "</td>" +
+      '<td class="pnl ' + pnlCls + '" data-l="미실현 손익">' + fmtUsd(p.upnl, { signed: true, compact: true }) +
+      '<span class="roe">' + fmtPct(p.roe) + "</span></td>" +
+      '<td class="liq" data-l="펀딩(보유 구간)" title="' + esc(fundTitle) + '">' + fund + "</td>" +
+      "</tr>";
+  }
+
+  function wmHeadHtml(addr) {
+    var w = wmWallet(addr) || { label: shortAddr(addr), tag: "", address: addr };
+    el.wmTitle.textContent = w.label;
+    el.wmTag.textContent = w.tag || "";
+    el.wmTag.hidden = !w.tag;
+    el.wmAddr.textContent = w.address;
+    var d = cache[addr];
+    var ok = d && d.ok;
+    var ms = ok ? ((d.state && d.state.marginSummary) || {}) : {};
+    var accVal = ok ? num(ms.accountValue) : null;
+    var upnl = ok ? sumUnrealized(d.state) : null;
+    var wd = ok ? num(d.state.withdrawable) : null;
+    var items = [
+      { k: "계좌가치", v: accVal == null ? "—" : fmtUsd(accVal, { compact: true }), cls: "" },
+      { k: "미실현 손익", v: upnl == null ? "—" : fmtUsd(upnl, { signed: true, compact: true }), cls: upnl > 0 ? "pos" : upnl < 0 ? "neg" : "" },
+      { k: "인출 가능", v: wd == null ? "—" : fmtUsd(wd, { compact: true }), cls: "" }
+    ];
+    el.wmHeadStats.innerHTML = items.map(function (s) {
+      return '<div class="ws"><div class="k">' + s.k + '</div><div class="v ' + s.cls + '">' + s.v + "</div></div>";
+    }).join("");
+  }
+
+  function wmBodyHtml(addr) {
+    var d = cache[addr];
+    var html = "";
+
+    html += '<div class="wm-sec">' +
+      '<div class="wm-sec-head"><h4>누적 손익</h4><span>Hyperliquid portfolio · USDC</span>' +
+      (WM.port[addr] && WM.port[addr].ok ? '<span class="wm-right">' + fmtClock(new Date(WM.port[addr].at)) + " 조회</span>" : "") +
+      "</div>" + wmPnlHtml(addr) + "</div>";
+
+    if (!d || !d.ok) {
+      html += '<div class="wm-sec"><div class="wm-sec-head"><h4>포지션 상세</h4></div>' +
+        '<div class="wm-load">' + (!d ? "포지션을 불러오는 중…" : "포지션 조회 실패: " + esc(d.error || "알 수 없는 오류")) + "</div></div>";
+      return html;
+    }
+
+    var ps = positionsOf(d.state);
+    var allPs = allPositionsOf(d.state);
+    var other = allPs.filter(function (p) { return !inScope(p.coin); });
+    var scopeExp = 0, allExp = 0, i;
+    for (i = 0; i < ps.length; i++) scopeExp += ps[i].value;
+    for (i = 0; i < allPs.length; i++) allExp += allPs[i].value;
+
+    html += '<div class="wm-sec">' +
+      '<div class="wm-sec-head"><h4>' + SCOPE_TEXT + ' 상세 포지션</h4><span>' + ps.length + '개</span>' +
+      '<span class="wm-right">노출 비중 ' + (allExp > 0 ? (scopeExp / allExp * 100).toFixed(1) + "%" : "—") + "</span></div>" +
+      (ps.length
+        ? '<div class="wm-table"><table><thead><tr><th>코인</th><th>방향</th><th>레버리지</th><th>수량</th>' +
+          "<th>포지션 규모</th><th>진입가</th><th>청산가</th><th>미실현 손익</th><th>펀딩(보유 구간)</th>" +
+          "</tr></thead><tbody>" + ps.map(wmPosRow).join("") + "</tbody></table></div>"
+        : '<div class="wm-load">' + SCOPE_TEXT + ' 포지션이 없습니다.</div>') +
+      "</div>";
+
+    var otherVal = 0, otherUpnl = 0;
+    for (i = 0; i < other.length; i++) { otherVal += other[i].value; otherUpnl += other[i].upnl; }
+
+    html += '<div class="wm-sec">' +
+      '<div class="wm-sec-head"><h4>다른 코인 포지션</h4><span>' + SCOPE_TEXT + " 외 · 기본 접힘</span></div>" +
+      (other.length
+        ? '<details class="wm-other"' + (WM.otherOpen ? " open" : "") + '>' +
+          '<summary>다른 코인 <b>' + other.length + '개</b>' +
+          '<span class="n">총 ' + fmtUsd(otherVal, { compact: true }) + " · 미실현 " +
+          fmtUsd(otherUpnl, { signed: true, compact: true }) + '</span><span class="arw">펼치기</span></summary>' +
+          '<div class="wm-table"><table><thead><tr><th>코인</th><th>방향</th><th>수량</th><th>포지션 규모</th><th>미실현 손익</th></tr></thead><tbody>' +
+          other.map(function (p) {
+            var cls = p.upnl > 0 ? "pos" : p.upnl < 0 ? "neg" : "";
+            return "<tr>" +
+              '<td class="coin" data-l="코인">' + esc(p.coin) + "</td>" +
+              '<td class="side" data-l="방향"><span class="side-pill ' + (p.isLong ? "long" : "short") + '">' +
+              (p.isLong ? "LONG" : "SHORT") + "</span></td>" +
+              '<td data-l="수량">' + fmtSize(Math.abs(p.size)) + " " + esc(p.coin) + "</td>" +
+              '<td data-l="포지션 규모">' + fmtUsd(p.value, { compact: true }) + "</td>" +
+              '<td class="pnl ' + cls + '" data-l="미실현 손익">' + fmtUsd(p.upnl, { signed: true, compact: true }) + "</td>" +
+              "</tr>";
+          }).join("") + "</tbody></table></div></details>"
+        : '<div class="wm-load">다른 코인 포지션이 없습니다. 이 지갑은 ' + SCOPE_TEXT + " 포지션만 보유 중입니다.</div>") +
+      "</div>";
+
+    return html;
+  }
+
+  function wmBindBody() {
+    if (!el.wmBody) return;
+    var det = el.wmBody.querySelector("details.wm-other");
+    if (det) det.addEventListener("toggle", function () { WM.otherOpen = det.open; });
+  }
+
+  function wmRefresh() {
+    if (!WM.open || !WM.addr) return;
+    var addr = WM.addr;
+    var top = el.wmBody.scrollTop;
+    wmHeadHtml(addr);
+    el.wmBody.innerHTML = wmBodyHtml(addr);
+    wmBindBody();
+    el.wmBody.scrollTop = top;
+    /* 열어 둔 사이 1분이 지났으면 누적 손익도 다시 불러온다(실패는 15초 뒤) */
+    var c = WM.port[addr];
+    if (c && !WM.pending[addr] && Date.now() - c.at > (c.ok ? PORT_TTL : PORT_ERR_TTL)) wmLoadPortfolio(addr);
+  }
+
+  function wmLoadPortfolio(addr) {
+    getPortfolio(addr).then(function () {
+      if (WM.open && WM.addr === addr) wmRefresh();
+    });
+  }
+
+  function openWhale(addr) {
+    if (!addr) return;
+    WM.addr = addr;
+    WM.open = true;
+    WM.lastFocus = document.activeElement;
+    el.wm.hidden = false;
+    document.body.classList.add("wm-open");
+    wmHeadHtml(addr);
+    el.wmBody.innerHTML = wmBodyHtml(addr);
+    el.wmBody.scrollTop = 0;
+    wmBindBody();
+    try { el.wmClose.focus(); } catch (e) {}
+    wmLoadPortfolio(addr);
+  }
+
+  function closeWhale() {
+    if (!WM.open) return;
+    WM.open = false;
+    el.wm.hidden = true;
+    document.body.classList.remove("wm-open");
+    WM.addr = null;
+    if (WM.lastFocus && WM.lastFocus.focus) { try { WM.lastFocus.focus(); } catch (e) {} }
+  }
+
+  el.wmClose.addEventListener("click", closeWhale);
+  el.wm.addEventListener("click", function (e) {
+    if (e && e.target && e.target.hasAttribute && e.target.hasAttribute("data-wm-close")) closeWhale();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && WM.open) closeWhale();
+  });
+  el.wmCopy.addEventListener("click", function () { copyText(WM.addr || "", el.wmCopy); });
+
 
   function renderChips() {
     el.chips.innerHTML = wallets.map(function (w, i) {
