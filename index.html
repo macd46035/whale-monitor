@@ -1850,7 +1850,8 @@
       var msg = c.err || "";
       var is429 = /429/.test(msg);
       var retryN = c.tries ? " (자동 재시도 " + Math.min(c.tries, 3) + "/3)" : "";
-      return '<div class="wm-load err">' + (is429
+      var boxCls = (c.tries && c.tries < 3) ? "wm-load" : "wm-load err";
+      return '<div class="' + boxCls + '">' + (is429
         ? "요청 한도(429)에 걸려 누적 손익을 불러오지 못했습니다." + retryN + " 잠시 뒤 자동으로 다시 시도합니다."
         : "누적 손익을 불러오지 못했습니다: " + esc(msg) + " · 잠시 뒤 자동으로 다시 시도합니다.") +
         '<div style="margin-top:9px"><button class="btn small" type="button" data-wm-retry>지금 다시 시도</button></div></div>';
@@ -1864,7 +1865,7 @@
       return '<div class="wm-tile">' +
         '<div class="k">' + r.label + "</div>" +
         '<div class="v ' + cls + '">' + v + "</div>" +
-        '<div class="p ' + cls + '">' + pLine + "</div>" +
+        '<div class="p ' + (p ? cls : "") + '">' + pLine + "</div>" +
         '<div class="sub">' + (r.perp == null ? "" : "선물 " + fmtUsd(r.perp, { signed: true, compact: true }) + "<br>") +
         (r.start > 0 ? "시작 " + fmtUsd(r.start, { compact: true }) + " · " : "") + fmtDay(r.from) + "~</div>" +
         "</div>";
