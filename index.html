@@ -468,7 +468,9 @@
   .wm-other[open] > summary::before{transform:rotate(90deg)}
   .wm-other > summary:hover{background:rgba(91,140,255,.06)}
   .wm-other > summary .n{color:var(--muted-2);font-weight:500;font-size:11.5px}
-  .wm-other > summary .arw{margin-left:auto;font-size:11px;color:var(--muted-2)}
+  .wm-other > summary .arw{margin-left:auto;font-size:0;color:var(--muted-2)}
+  .wm-other > summary .arw::after{content:"펼치기";font-size:11px}
+  .wm-other[open] > summary .arw::after{content:"접기"}
   .wm-other .wm-table{border:none;border-radius:0;border-top:1px solid var(--line-soft)}
   @media (max-width:760px){
     .modal{padding:0}
@@ -601,7 +603,7 @@
     .bias-legend{font-size:11.5px;gap:4px;margin-top:8px}
 
     .events.compact .evt-panel-head{padding:13px 17px 11px}
-    .events.compact .evt-list{max-height:330px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+    .events.compact .evt-list{max-height:260px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
     .events.compact .evt-row{
       display:flex;flex-wrap:wrap;gap:4px 8px;padding:10px 16px;
       font-size:11.5px;line-height:1.4;
@@ -649,7 +651,7 @@
   @media (min-width:1440px){
     #priceChart{height:400px}
     #indChart{height:152px}
-    .events.compact .evt-list{max-height:356px}
+    .events.compact .evt-list{max-height:284px}
   }
   @media (prefers-reduced-motion:reduce){
     *{animation:none!important;transition:none!important}
@@ -1532,10 +1534,11 @@
     /* ② 계좌 수(지갑) 기준 — 순노출이 0인 계좌는 비율에서 제외 */
     var accTotal = agg.netLong + agg.netShort;
     var accLongPct = accTotal > 0 ? (agg.netLong / accTotal) * 100 : 50;
+    var accLongPctR = accTotal ? Math.round(accLongPct) : 0;
     el.biasAccLong.style.width = accLongPct.toFixed(2) + "%";
     el.biasAccShort.style.width = (100 - accLongPct).toFixed(2) + "%";
-    el.biasAccLongPct.textContent = accTotal ? Math.round(accLongPct) + "%" : "—";
-    el.biasAccShortPct.textContent = accTotal ? Math.round(100 - accLongPct) + "%" : "—";
+    el.biasAccLongPct.textContent = accTotal ? accLongPctR + "%" : "—";
+    el.biasAccShortPct.textContent = accTotal ? (100 - accLongPctR) + "%" : "—";
     el.biasAccLongN.textContent = agg.netLong + "곳";
     el.biasAccShortN.textContent = agg.netShort + "곳";
     el.biasAccNote.innerHTML = "롱 포지션 보유 <b>" + agg.holdLong + "곳</b> · 숏 보유 <b>" + agg.holdShort + "곳</b>" +
@@ -1848,7 +1851,7 @@
         '<div class="v ' + cls + '">' + v + "</div>" +
         '<div class="p ' + cls + '">' + (p ? p + " · 시작가 대비" : "—") + "</div>" +
         '<div class="sub">' + (r.perp == null ? "" : "선물 " + fmtUsd(r.perp, { signed: true, compact: true }) + "<br>") +
-        "시작 " + fmtUsd(r.start, { compact: true }) + " · " + fmtDay(r.from) + "~" + "</div>" +
+        (r.start > 0 ? "시작 " + fmtUsd(r.start, { compact: true }) + " · " : "") + fmtDay(r.from) + "~</div>" +
         "</div>";
     }).join("") + "</div>" +
       '<div class="wm-note">Hyperliquid <b>portfolio</b> API의 기간별 누적 손익(pnlHistory 마지막 값)입니다. ' +
