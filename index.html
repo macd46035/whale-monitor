@@ -1785,10 +1785,22 @@
     if (WM.pending[addr]) return WM.pending[addr];
     var p = post({ type: "portfolio", user: addr }).then(function (data) {
       if (!Array.isArray(data)) throw new Error("응답 형식 오류");
-      WM.port[addr] = { ok: true, data: data, at: Date.now(), err: null };
+      WM.port[addr] = { ok: true, data: data, at: Date.now(), err: null, tries: 0 };
       return WM.port[addr];
     }).catch(function (err) {
-      WM.port[addr] = { ok: false, data: null, at: Date.now(), err: String(err && err.message ? err.message : err) };
+      var msg = String(err && err.message ? err.message : err);
+      var prev = WM.port[addr] && WM.port[addr].tries ? WM.port[addr].tries : 0;
+      var tries = /429/.test(msg) ? prev + 1 : 0;
+      WM.port[addr] = {
+        ok: false, data: WM.port[addr] ? WM.port[addr].data : null,
+        at: Date.now(), err: msg, tries: tries
+      };
+      /* 429는 요청이 몰린 것이라 조금씩 간격을 늘려 최대 3번 다시 시도합니다. */
+      if (tries > 0 && tries <= 3) {
+        setTimeout(function () {
+          if (WM.open && WM.addr === addr) wmLoadPortfolio(addr, true);
+        }, tries * 6000);
+      }
       return WM.port[addr];
     });
     WM.pending[addr] = p;
@@ -1837,9 +1849,11 @@
     if (!c.ok) {
       var msg = c.err || "";
       var is429 = /429/.test(msg);
+      var retryN = c.tries ? " (자동 재시도 " + Math.min(c.tries, 3) + "/3)" : "";
       return '<div class="wm-load err">' + (is429
-        ? "요청 한도(429)에 걸려 누적 손익을 불러오지 못했습니다. 잠시 뒤 자동으로 다시 시도합니다."
-        : "누적 손익을 불러오지 못했습니다: " + esc(msg) + " · 잠시 뒤 자동으로 다시 시도합니다.") + "</div>";
+        ? "요청 한도(429)에 걸려 누적 손익을 불러오지 못했습니다." + retryN + " 잠시 뒤 자동으로 다시 시도합니다."
+        : "누적 손익을 불러오지 못했습니다: " + esc(msg) + " · 잠시 뒤 자동으로 다시 시도합니다.") +
+        '<div style="margin-top:9px"><button class="btn small" type="button" data-wm-retry>지금 다시 시도</button></div></div>';
     }
     var rows = wmPeriods(c.data);
     return '<div class="wm-pnl">' + rows.map(function (r) {
@@ -1983,6 +1997,13 @@
     if (!el.wmBody) return;
     var det = el.wmBody.querySelector("details.wm-other");
     if (det) det.addEventListener("toggle", function () { WM.otherOpen = det.open; });
+    var retry = el.wmBody.querySelector("[data-wm-retry]");
+    if (retry) retry.addEventListener("click", function () {
+      if (!WM.addr) return;
+      retry.disabled = true;
+      retry.textContent = "다시 시도 중…";
+      wmLoadPortfolio(WM.addr, true);
+    });
   }
 
   function wmRefresh() {
@@ -1993,13 +2014,16 @@
     el.wmBody.innerHTML = wmBodyHtml(addr);
     wmBindBody();
     el.wmBody.scrollTop = top;
-    /* 열어 둔 사이 1분이 지났으면 누적 손익도 다시 불러온다(실패는 15초 뒤) */
+    /* 열어 둔 사이 1분이 지났으면 누적 손익도 다시 불러온다(실패는 15초 뒤, 429는 내부 재시도에 맡김) */
     var c = WM.port[addr];
-    if (c && !WM.pending[addr] && Date.now() - c.at > (c.ok ? PORT_TTL : PORT_ERR_TTL)) wmLoadPortfolio(addr);
+    if (c && !WM.pending[addr]) {
+      var stale = Date.now() - c.at > (c.ok ? PORT_TTL : PORT_ERR_TTL);
+      if (stale && (c.ok || !/429/.test(c.err || ""))) wmLoadPortfolio(addr);
+    }
   }
 
-  function wmLoadPortfolio(addr) {
-    getPortfolio(addr).then(function () {
+  function wmLoadPortfolio(addr, force) {
+    getPortfolio(addr, force).then(function () {
       if (WM.open && WM.addr === addr) wmRefresh();
     });
   }
