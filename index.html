@@ -3669,6 +3669,8 @@
     splitEl.addEventListener("pointerdown", function (e) {
       if (e.pointerType === "mouse" && e.button !== 0) return;
       e.preventDefault();
+      /* preventDefault가 기본 포커스를 막으므로 직접 포커스를 줘서 키보드 조절(↑/↓·Home)이 이어지게 함 */
+      try { splitEl.focus({ preventScroll: true }); } catch (err) { try { splitEl.focus(); } catch (err2) {} }
       dg = {
         y: e.clientY,
         h: chel.indChart.clientHeight,
