@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0a0d12" />
 <link rel="preconnect" href="https://unpkg.com" crossorigin />
 <link rel="preconnect" href="https://api.hyperliquid.xyz" crossorigin />
-<meta name="description" content="하이퍼리퀴드 상위 고래 지갑 10곳의 BTC·ETH 포지션과 미실현 손익, BTC 캔들 차트·고래 롱/숏 비율 지표를 5초마다 갱신해서 보여주는 대시보드입니다." />
+<meta name="description" content="하이퍼리퀴드 상위 고래 지갑 20곳의 BTC·ETH 포지션과 미실현 손익, BTC 캔들 차트·고래 롱/숏 비율 지표를 5초마다 갱신해서 보여주는 대시보드입니다." />
 <title>고래 포지션 모니터 · BTC·ETH · BTC 차트 · Hyperliquid 실시간</title>
 <style>
   :root{
@@ -798,7 +798,7 @@
       <div class="logo">🐋</div>
       <div>
         <h1>고래 포지션 모니터</h1>
-        <p>Hyperliquid 고래 10곳 · BTC·ETH 포지션 · BTC 차트</p>
+        <p>Hyperliquid 고래 20곳 · BTC·ETH 포지션 · BTC 차트</p>
       </div>
     </div>
     <div class="top-actions">
@@ -2774,7 +2774,7 @@
     EV.skip = {};
     saveEvents(true);
     saveWallets();
-    hint("기본 고래 10곳으로 되돌렸습니다.", "ok");
+    hint("기본 고래 20곳으로 되돌렸습니다.", "ok");
     render();
     refresh();
     chartReload();
@@ -2806,8 +2806,8 @@
   var HIST_MAX = 3000;
   var FILL_TTL = 10 * 60 * 1000;      // 체결 사슬 조회는 10분 캐시
   var FILL_PAGE = 2000;               // userFills / userFillsByTime 1회 최대 2,000건
-  var FILL_MAX_REQ = 6;               // 지갑당 체결 요청 상한(최근 1회 + 과거 확장 5회)
-  var FILL_GAP_MS = 450;              // 체결 요청 사이 간격(20곳 확장으로 늘림)
+  var FILL_MAX_REQ = 3;               // 지갑당 체결 요청 상한(최근 1회 + 과거 확장 2회) — 20곳에서 429를 막기 위해 낮춤
+  var FILL_GAP_MS = 600;              // 체결 요청 사이 간격(20곳 확장으로 늘림)
   var RIGHT_OFFSET = 12;              // 현재 캔들 오른쪽 여백(봉)
 
   /* 주기별 설정
