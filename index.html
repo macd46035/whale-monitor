@@ -338,41 +338,57 @@
   .swing-meta code{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1px}
   .swing-meta .sns{margin-top:0}
   .swing-body{padding:2px 0 0}
-  .srow{
-    display:grid;grid-template-columns:minmax(58px,1fr) 52px minmax(56px,.95fr) minmax(58px,.95fr) minmax(66px,1.05fr);
-    gap:8px;align-items:center;padding:6px 16px;
-    font-size:11.5px;font-variant-numeric:tabular-nums;
-    border-bottom:1px solid var(--line-soft);
-  }
-  .srow:last-child{border-bottom:none}
-  .srow:hover{background:rgba(91,140,255,.045)}
-  .srow.shead{
-    font-size:10px;color:var(--muted-2);letter-spacing:.02em;padding-top:5px;padding-bottom:5px;
-    background:rgba(12,18,27,.42);
-  }
-  .srow.shead:hover{background:rgba(12,18,27,.42)}
-  .srow .sc{font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .srow .sc small{display:block;font-weight:400;color:var(--muted-2);font-size:10px}
-  .srow .sn{color:var(--muted)}
-  .srow .sv{text-align:right;color:var(--muted)}
-  .srow .sp{text-align:right;color:var(--muted);white-space:nowrap}
-  .srow .sp.pos{color:var(--long)}
-  .srow .sp.neg{color:var(--short)}
-  .srow.shead .sv,.srow.shead .sp,.srow.shead .sn{text-align:right;color:var(--muted-2);font-weight:600}
-  .srow .side-pill{font-size:9.5px;padding:1px 5px}
-  .swing-empty{
-    padding:16px;text-align:center;font-size:12px;color:var(--muted);
-    background:rgba(12,18,27,.22);
-  }
-  .swing-empty b{color:#a9c0ff;font-weight:650}
-  .swing-scroll{max-height:286px;overflow:auto;overscroll-behavior:contain}
+  /* 포지션 표: 카드마다 칸 너비가 똑같이 맞도록
+     고정 레이아웃 + 같은 비율의 colgroup + 스크롤바 자리 예약(scrollbar-gutter). */
+  .swing-scroll{max-height:286px;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
   .swing-scroll::-webkit-scrollbar{width:8px}
   .swing-scroll::-webkit-scrollbar-thumb{background:#243248;border-radius:999px}
+  .swing-table{
+    table-layout:fixed;width:100%;border-collapse:collapse;
+    font-size:11.5px;font-variant-numeric:tabular-nums;
+  }
+  .swing-table col.c-coin{width:24%}
+  .swing-table col.c-side{width:15%}
+  .swing-table col.c-size{width:21%}
+  .swing-table col.c-val{width:20%}
+  .swing-table col.c-pnl{width:20%}
+  .swing-table th,.swing-table td{
+    padding:6px 0 6px 8px;line-height:1.45;
+    text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .swing-table th:first-child,.swing-table td:first-child{padding-left:16px}
+  .swing-table th:last-child,.swing-table td:last-child{padding-right:16px}
+  .swing-table thead th{
+    position:sticky;top:0;z-index:1;padding-top:5px;padding-bottom:5px;
+    font-size:10px;font-weight:600;letter-spacing:.02em;color:var(--muted-2);
+    background:#0f1620;border-bottom:1px solid var(--line-soft);
+  }
+  .swing-table tbody td{color:var(--muted);border-bottom:1px solid var(--line-soft)}
+  .swing-table tbody tr:last-child td{border-bottom:none}
+  .swing-table tbody tr:hover td{background:rgba(91,140,255,.045)}
+  .swing-table .num{text-align:right}
+  .swing-table td.coin{font-weight:650;color:var(--text)}
+  .swing-table td.coin small{display:block;font-weight:400;color:var(--muted-2);font-size:10px;line-height:1.4}
+  .swing-table td.pos{color:var(--long)}
+  .swing-table td.neg{color:var(--short)}
+  .swing-table .side-pill{font-size:9.5px;padding:1px 5px}
+  .swing-table td.st{
+    text-align:center;padding:16px;color:var(--muted);border-bottom:none;
+    white-space:normal;text-overflow:clip;
+  }
+  .swing-table td.st b{color:#a9c0ff;font-weight:650}
+  .swing-table td.st small{display:block;margin-top:2px;color:var(--muted-2);font-size:10.5px}
   @media (max-width:760px){
     .swing-grid{grid-template-columns:1fr}
-    .srow{grid-template-columns:minmax(52px,1fr) 46px minmax(50px,.9fr) minmax(52px,.9fr) minmax(58px,1fr);
-      gap:6px;padding:6px 12px;font-size:11px}
     .swing-scroll{max-height:none}
+    .swing-table{font-size:11px}
+    .swing-table col.c-coin{width:24%}
+    .swing-table col.c-side{width:15%}
+    .swing-table col.c-size{width:23%}
+    .swing-table col.c-val{width:19%}
+    .swing-table col.c-pnl{width:19%}
+    .swing-table th:first-child,.swing-table td:first-child{padding-left:12px}
+    .swing-table th:last-child,.swing-table td:last-child{padding-right:12px}
   }
 
   /* ── 포지션 변동 로그 ──────────────────────────── */
@@ -2789,31 +2805,38 @@
         '</div>';
 
       var body;
+      /* 표 머리와 열 비율은 모든 카드가 같은 것을 씁니다(칸 너비 통일). */
+      var TBL = '<colgroup><col class="c-coin"><col class="c-side"><col class="c-size">' +
+        '<col class="c-val"><col class="c-pnl"></colgroup>' +
+        '<thead><tr><th>코인</th><th>방향</th><th class="num">수량</th>' +
+        '<th class="num">규모</th><th class="num">미실현</th></tr></thead>';
+      var swingTable = function (inner) {
+        return '<div class="swing-scroll"><table class="swing-table">' + TBL +
+          '<tbody>' + inner + '</tbody></table></div>';
+      };
       if (!d) {
-        body = '<div class="swing-empty">포지션을 불러오는 중…</div>';
+        body = swingTable('<tr><td class="st" colspan="5">포지션을 불러오는 중…</td></tr>');
       } else if (!d.ok) {
-        body = '<div class="swing-empty">조회 실패: ' + esc(d.error || "알 수 없는 오류") + '<br><small>30초마다 다시 시도합니다.</small></div>';
+        body = swingTable('<tr><td class="st" colspan="5">조회 실패: ' + esc(d.error || "알 수 없는 오류") +
+          '<small>30초마다 다시 시도합니다.</small></td></tr>');
       } else {
         var ps = allPositionsOf(d.state);
         if (!ps.length) {
-          body = '<div class="swing-empty"><b>현금 관망 중 (무포지션)</b>' +
-            '<br><small>계좌가치 ' + fmtUsd(num((d.state.marginSummary || {}).accountValue), { compact: true }) +
-            ' 전액이 현금입니다.</small></div>';
+          body = swingTable('<tr><td class="st" colspan="5"><b>현금 관망 중 (무포지션)</b>' +
+            '<small>계좌가치 ' + fmtUsd(num((d.state.marginSummary || {}).accountValue), { compact: true }) +
+            ' 전액이 현금입니다.</small></td></tr>');
         } else {
           var rows = ps.map(function (p) {
-            return '<div class="srow">' +
-              '<span class="sc">' + esc(p.coin) + (p.mark ? '<small>' + fmtPrice(p.mark) + '</small>' : '') + '</span>' +
-              '<span><span class="side-pill ' + (p.isLong ? "long" : "short") + '">' + (p.isLong ? "LONG" : "SHORT") + '</span></span>' +
-              '<span class="sn">' + fmtSize(Math.abs(p.size)) + '</span>' +
-              '<span class="sv">' + fmtUsd(p.value, { compact: true }) + '</span>' +
-              '<span class="sp ' + (p.upnl > 0 ? "pos" : p.upnl < 0 ? "neg" : "") + '">' +
-                fmtUsd(p.upnl, { signed: true, compact: true }) + '</span>' +
-              '</div>';
+            return '<tr>' +
+              '<td class="coin">' + esc(p.coin) + (p.mark ? '<small>' + fmtPrice(p.mark) + '</small>' : '') + '</td>' +
+              '<td><span class="side-pill ' + (p.isLong ? "long" : "short") + '">' + (p.isLong ? "LONG" : "SHORT") + '</span></td>' +
+              '<td class="num">' + fmtSize(Math.abs(p.size)) + '</td>' +
+              '<td class="num">' + fmtUsd(p.value, { compact: true }) + '</td>' +
+              '<td class="num ' + (p.upnl > 0 ? "pos" : p.upnl < 0 ? "neg" : "") + '">' +
+                fmtUsd(p.upnl, { signed: true, compact: true }) + '</td>' +
+              '</tr>';
           }).join("");
-          body = '<div class="swing-scroll">' +
-            '<div class="srow shead"><span class="sc">코인</span><span>방향</span><span class="sn">수량</span>' +
-              '<span class="sv">규모</span><span class="sp">미실현</span></div>' +
-            rows + '</div>';
+          body = swingTable(rows);
         }
       }
 
