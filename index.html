@@ -4298,13 +4298,17 @@
         var out = [], i;
         for (i = 0; i < arr.length; i++) {
           var s = arr[i] || {}, be = s.btcEth || {}, bt = s.btc || {};
-          if (!isFinite(s.ts) || be.netLongPct == null || !isFinite(be.netLongPct)) continue;
-          var cv = (be.coverage && isFinite(be.coverage.ok)) ? Number(be.coverage.ok) : 0;
-          var tt = (be.coverage && isFinite(be.coverage.total)) ? Number(be.coverage.total) : 0;
+          /* 지표가 BTC 전용이므로 스냅샷도 btc 블록을 먼저 읽고, 그 블록이 없는 옛 항목만 합산값으로 대체합니다. */
+          var btcOk = bt.netLongPct != null && isFinite(bt.netLongPct);
+          var val = btcOk ? Number(bt.netLongPct) : (be.netLongPct == null || !isFinite(be.netLongPct) ? null : Number(be.netLongPct));
+          if (!isFinite(s.ts) || val == null) continue;
+          var cov0 = (btcOk ? bt.coverage : be.coverage) || {};
+          var cv = isFinite(cov0.ok) ? Number(cov0.ok) : 0;
+          var tt = isFinite(cov0.total) ? Number(cov0.total) : 0;
           out.push({
             t: Number(s.ts),
-            r: Number(be.netLongPct),
-            b: (bt.netLongPct == null || !isFinite(bt.netLongPct)) ? null : Number(bt.netLongPct),
+            r: val,
+            b: btcOk ? Number(bt.netLongPct) : null,
             net: (Number(be.longUsd) || 0) - (Number(be.shortUsd) || 0),
             bnet: (Number(bt.longUsd) || 0) - (Number(bt.shortUsd) || 0),
             cov: cv, tot: tt
