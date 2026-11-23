@@ -380,15 +380,20 @@
   .swing-table td.st small{display:block;margin-top:2px;color:var(--muted-2);font-size:10.5px}
   @media (max-width:760px){
     .swing-grid{grid-template-columns:1fr}
-    .swing-scroll{max-height:none}
-    .swing-table{font-size:11px}
-    .swing-table col.c-coin{width:24%}
-    .swing-table col.c-side{width:15%}
+    .swing-scroll{max-height:none;scrollbar-gutter:auto}
+    .swing-table{font-size:10.5px}
+    .swing-table col.c-coin{width:22%}
+    .swing-table col.c-side{width:14%}
     .swing-table col.c-size{width:23%}
-    .swing-table col.c-val{width:19%}
-    .swing-table col.c-pnl{width:19%}
-    .swing-table th:first-child,.swing-table td:first-child{padding-left:12px}
-    .swing-table th:last-child,.swing-table td:last-child{padding-right:12px}
+    .swing-table col.c-val{width:18.5%}
+    .swing-table col.c-pnl{width:22.5%}
+    .swing-table th,.swing-table td{padding-left:4px}
+    .swing-table th:first-child,.swing-table td:first-child{padding-left:8px}
+    .swing-table th:last-child,.swing-table td:last-child{padding-right:8px}
+    .swing-table .side-pill{font-size:9px;padding:1px 4px}
+  }
+  @media (max-width:400px){
+    .swing-table{font-size:10px}
   }
 
   /* ── 포지션 변동 로그 ──────────────────────────── */
