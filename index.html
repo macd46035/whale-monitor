@@ -389,7 +389,49 @@
   .ch-legend .sep{width:1px;height:11px;background:var(--line)}
   .chart-box{width:100%;min-width:0}
   #priceChart{height:302px}
-  #indChart{height:176px}
+  #indChart{height:var(--ind-h,176px)}
+  /* ── 가격 차트 ↔ 지표 패널 높이 조절 핸들 (트레이딩뷰 스타일) ──
+     --ind-h = 지표 패널 높이. 화면 폭별 기본값은 아래 미디어쿼리에서 정하고,
+     사용자가 드래그한 값은 #chartPanel의 인라인 변수로 그 기본값을 덮습니다. */
+  .pane-split{
+    position:relative;flex:0 0 auto;height:11px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:ns-resize;touch-action:none;-webkit-user-select:none;user-select:none;
+    background:transparent;outline:none;z-index:4;
+  }
+  .pane-split::before{
+    content:"";position:absolute;left:0;right:0;top:50%;height:1px;margin-top:-.5px;
+    background:var(--line-soft);
+    transition:background .12s,height .12s,margin-top .12s,box-shadow .12s;
+  }
+  .pane-split-grip{
+    position:relative;display:flex;align-items:center;justify-content:center;gap:2.5px;
+    height:11px;padding:0 9px;border-radius:99px;
+    background:#0b1118;border:1px solid var(--line-soft);
+    opacity:.62;
+    transition:opacity .12s,border-color .12s,background .12s,box-shadow .12s;
+  }
+  .pane-split-grip i{display:block;width:2px;height:2px;border-radius:50%;background:var(--muted-2);transition:background .12s}
+  .pane-split:hover::before,.pane-split:focus-visible::before,.pane-split.is-drag::before{
+    background:var(--accent);height:2px;margin-top:-1px;
+    box-shadow:0 0 10px rgba(91,140,255,.55);
+  }
+  .pane-split:hover .pane-split-grip,.pane-split:focus-visible .pane-split-grip,.pane-split.is-drag .pane-split-grip{
+    opacity:1;border-color:rgba(91,140,255,.55);background:#101b2b;
+    box-shadow:0 0 0 1px rgba(91,140,255,.16),0 2px 9px rgba(0,0,0,.5);
+  }
+  .pane-split:hover .pane-split-grip i,.pane-split:focus-visible .pane-split-grip i,.pane-split.is-drag .pane-split-grip i{background:var(--accent)}
+  .pane-split-tip{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);
+    padding:1px 7px;border-radius:6px;pointer-events:none;
+    background:rgba(11,17,24,.94);border:1px solid var(--line);
+    font-size:10px;line-height:15px;font-variant-numeric:tabular-nums;
+    color:var(--muted-2);white-space:nowrap;opacity:0;transition:opacity .12s;
+  }
+  .pane-split-tip b{color:var(--accent);font-weight:650}
+  .pane-split:hover .pane-split-tip,.pane-split.is-drag .pane-split-tip{opacity:1}
+  body.pane-dragging{-webkit-user-select:none;user-select:none;cursor:ns-resize}
+  body.pane-dragging .chartpanel,body.pane-dragging .chartpanel *{cursor:ns-resize!important}
   /* 지표 차트 위 안내 — 아직 복원된 지표가 없을 때(빈 축만 보이는 상태) 대신 표시 */
   .chart-wrap{position:relative;width:100%;min-width:0}
   .chart-mask{
@@ -596,7 +638,7 @@
     .coin-vals .cv-main{flex-wrap:wrap;justify-content:flex-start;gap:3px 12px}
     .coin-vals .cv-sub{margin-top:2px}
     #priceChart{height:246px}
-    #indChart{height:168px}
+    .chartpanel{--ind-h:168px}
     .ind-head{padding:7px 12px 6px;gap:6px 12px}
     .ind-head .cov{margin-left:0;flex-basis:100%}
     .ch-controls{margin-left:0;width:100%}
@@ -671,7 +713,7 @@
     .ch-price{font-size:20px}
     .ch-legend{padding:9px 18px;font-size:12px;gap:16px}
     #priceChart{height:auto;flex:1 1 auto;min-height:300px}
-    #indChart{height:216px}
+    .chartpanel{--ind-h:216px}
     .ch-foot{padding:10px 18px 12px;font-size:11.5px}
 
     .bias{padding:16px 17px}
@@ -726,7 +768,7 @@
     .whale th:nth-child(7),.whale td:nth-child(7){width:18%}
   }
   @media (min-width:1440px){
-    #indChart{height:228px}
+    .chartpanel{--ind-h:228px}
     .events.compact .evt-list{flex-basis:284px}
   }
   @media (prefers-reduced-motion:reduce){
@@ -818,6 +860,13 @@
       <span class="k" id="chCov">지표 계산 중…</span>
     </div>
     <div class="chart-box" id="priceChart"></div>
+    <!-- 가격 차트와 지표 패널 사이 높이 조절 핸들 (위/아래로 드래그, 더블클릭 초기화) -->
+    <div class="pane-split" id="indSplit" role="separator" aria-orientation="horizontal"
+         aria-label="가격 차트와 지표 패널 높이 조절" aria-valuemin="90" aria-valuenow="216"
+         tabindex="0" title="위/아래로 드래그해 지표 패널 높이를 조절합니다 · 더블클릭하면 기본값으로 돌아갑니다">
+      <span class="pane-split-grip" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="pane-split-tip" id="indSplitTip" aria-hidden="true">지표 <b>216px</b></span>
+    </div>
     <div class="ind-head" id="indHead">
       <span class="ttl">지표 <b id="indTitle">BTC·ETH 롱 비율</b><small>%</small></span>
       <span class="k">최근 <b id="indLast">—</b></span>
@@ -3494,6 +3543,164 @@
   window.addEventListener("orientationchange", function () {
     setTimeout(sizeCharts, 350);
   });
+
+  /* ───────────── 가격 차트 ↔ 지표 패널 높이 조절(드래그) ─────────────
+     - 핸들을 위/아래로 끌면 지표 패널 높이(--ind-h)가 바뀌고, 데스크톱에서는
+       카드 높이가 고정이라 가격 차트가 반대 방향으로 줄어듭니다(트레이딩뷰와 동일).
+     - 더블클릭 = 기본값(화면 폭별 CSS 기본값)으로 원복
+     - 값은 localStorage에 저장되어 새로고침해도 유지됩니다. */
+  var IND_H_KEY = "hl_whale_ind_height_v1";
+  var IND_MIN = 90;          // 지표 패널 최소 높이
+  var PRICE_MIN = 180;       // 가격 차트 최소 높이(요청값)
+  var indSavedH = null;      // 사용자가 고른 지표 패널 높이(px). null이면 기본값
+  var splitEl = $("indSplit");
+  var splitTip = $("indSplitTip");
+  var chartPanel = $("chartPanel");
+
+  function isDeskLayout() {
+    try { return window.matchMedia("(min-width:1024px)").matches; }
+    catch (e) { return window.innerWidth >= 1024; }
+  }
+
+  /* 가격 차트의 실제 하한(데스크톱 CSS min-height가 180보다 크면 그쪽을 따릅니다) */
+  function priceFloor() {
+    var mh = 0;
+    try { mh = parseFloat(getComputedStyle(chel.priceChart).minHeight) || 0; } catch (e) {}
+    return Math.max(PRICE_MIN, Math.round(mh));
+  }
+
+  /* 지표 패널 높이 허용 범위: 위 = 지표 최소, 아래 = 가격 차트 하한을 지키는 선
+     (데스크톱은 두 차트 높이의 합이 카드 높이에 고정되어 있으므로 그 합에서 가격 차트 하한을 뺀 값) */
+  function indRange(pool) {
+    var hi;
+    if (isDeskLayout()) {
+      if (pool == null) pool = chel.priceChart.clientHeight + chel.indChart.clientHeight;
+      hi = Math.round(pool) - priceFloor();
+    } else {
+      hi = Math.round(window.innerHeight * 0.55);
+    }
+    if (!isFinite(hi) || hi < IND_MIN) hi = IND_MIN;
+    return { min: IND_MIN, max: Math.max(IND_MIN, hi) };
+  }
+  function clampInd(h, pool) {
+    var r = indRange(pool);
+    h = Math.round(h);
+    if (!isFinite(h)) h = r.max;
+    return Math.min(r.max, Math.max(r.min, h));
+  }
+
+  function paintSplit() {
+    if (!splitEl || !chel.indChart) return;
+    var h = chel.indChart.clientHeight;
+    try { splitEl.setAttribute("aria-valuenow", String(h)); } catch (e) {}
+    try { splitEl.setAttribute("aria-valuemax", String(indRange().max)); } catch (e) {}
+    if (splitTip) splitTip.innerHTML = "지표 <b>" + h + "px</b> · 더블클릭 초기화";
+  }
+
+  /* h = null 이면 화면 폭별 기본값으로 되돌립니다 */
+  function setIndH(h, persist) {
+    if (!chartPanel) return;
+    if (h == null) {
+      chartPanel.style.removeProperty("--ind-h");
+    } else {
+      chartPanel.style.setProperty("--ind-h", Math.round(h) + "px");
+    }
+    if (persist) {
+      indSavedH = h == null ? null : Math.round(h);
+      try {
+        if (indSavedH == null) localStorage.removeItem(IND_H_KEY);
+        else localStorage.setItem(IND_H_KEY, String(indSavedH));
+      } catch (e) {}
+    }
+    sizeCharts();
+    paintSplit();
+  }
+
+  (function initSplit() {
+    if (!splitEl || !chartPanel || !chel.indChart || !chel.priceChart) return;
+    var saved = null;
+    try { saved = parseInt(localStorage.getItem(IND_H_KEY), 10); } catch (e) {}
+    if (!isFinite(saved) || saved <= 0) saved = null;
+    indSavedH = saved;
+    if (saved != null) setIndH(clampInd(saved), false);
+    else paintSplit();
+
+    var dg = null, raf = 0, pend = null;
+
+    function paintFrame() {
+      raf = 0;
+      if (pend == null) return;
+      var h = pend; pend = null;
+      setIndH(clampInd(h, dg ? dg.pool : null), false);
+    }
+
+    splitEl.addEventListener("pointerdown", function (e) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      e.preventDefault();
+      dg = {
+        y: e.clientY,
+        h: chel.indChart.clientHeight,
+        pool: chel.priceChart.clientHeight + chel.indChart.clientHeight,
+        id: e.pointerId
+      };
+      try { splitEl.setPointerCapture(e.pointerId); } catch (err) {}
+      splitEl.classList.add("is-drag");
+      document.body.classList.add("pane-dragging");
+      paintSplit();
+    });
+
+    splitEl.addEventListener("pointermove", function (e) {
+      if (!dg || e.pointerId !== dg.id) return;
+      e.preventDefault();
+      var dy = dg.y - e.clientY;          // 위로 끌면 지표 패널이 커집니다
+      pend = dg.h + dy;
+      if (!raf) raf = window.requestAnimationFrame ? requestAnimationFrame(paintFrame) : setTimeout(paintFrame, 16);
+    });
+
+    function endDrag(e) {
+      if (!dg || (e && e.pointerId != null && e.pointerId !== dg.id)) return;
+      var id = dg.id;
+      dg = null;
+      if (raf) { try { cancelAnimationFrame(raf); } catch (err) {} raf = 0; }
+      pend = null;
+      splitEl.classList.remove("is-drag");
+      document.body.classList.remove("pane-dragging");
+      try { splitEl.releasePointerCapture(id); } catch (err) {}
+      /* 마지막 위치를 확정해 저장 */
+      setIndH(clampInd(chel.indChart.clientHeight), true);
+    }
+    splitEl.addEventListener("pointerup", endDrag);
+    splitEl.addEventListener("pointercancel", endDrag);
+
+    /* 더블클릭 = 기본 배분으로 원복 */
+    splitEl.addEventListener("dblclick", function (e) {
+      e.preventDefault();
+      setIndH(null, true);
+    });
+
+    /* 키보드: ↑/↓ 16px, PageUp/PageDown 48px, Home = 기본값 */
+    splitEl.addEventListener("keydown", function (e) {
+      var k = e.key, cur = chel.indChart.clientHeight, next = null;
+      if (k === "ArrowUp") next = cur + 16;
+      else if (k === "ArrowDown") next = cur - 16;
+      else if (k === "PageUp") next = cur + 48;
+      else if (k === "PageDown") next = cur - 48;
+      else if (k === "Home" || k === "0") { e.preventDefault(); setIndH(null, true); return; }
+      if (next == null) return;
+      e.preventDefault();
+      setIndH(clampInd(next, chel.priceChart.clientHeight + chel.indChart.clientHeight), true);
+    });
+
+    /* 창 폭이 바뀌면 저장값을 현재 화면 기준으로 다시 맞춥니다 */
+    var reTimer = null;
+    window.addEventListener("resize", function () {
+      clearTimeout(reTimer);
+      reTimer = setTimeout(function () {
+        if (indSavedH != null) setIndH(clampInd(indSavedH), false);
+        else paintSplit();
+      }, 180);
+    });
+  })();
 
   function mix(a, b) {
     var out = {}, k;
