@@ -217,6 +217,16 @@ def main() -> int:
     wallets, src = load_wallets(root)
     log(f"[wallets] {len(wallets)}곳 · 출처: {src}")
 
+    # 바이낸스 상위 트레이더 롱 비율(data/binance_ls.json)도 같은 실행에서 갱신합니다.
+    # 실패해도 고래 스냅샷 기록은 그대로 진행합니다.
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from binance_ls import update_archive  # noqa: PLC0415
+        res = update_archive(root, dry_run=args.dry_run)
+        log(f"[binance] 갱신 {'있음' if res.get('changed') else '없음'} · {res.get('updated')}")
+    except Exception as e:  # noqa: BLE001
+        log(f"[warn] 바이낸스 롱 비율 갱신 실패(무시하고 계속): {e}")
+
     long_usd = short_usd = 0.0
     btc_long = btc_short = 0.0
     ok = 0
