@@ -1,7 +1,8 @@
 name: Hourly Whale Snapshot
 
-# 하이퍼리퀴드 고래 20곳의 BTC·ETH 롱/숏 노출을 1시간마다 data/snapshots.json 에 기록합니다.
-# index.html 은 이 파일을 읽어, 체결 복원이 닿지 않는 구간을 실측 스냅샷으로 채웁니다.
+# 하이퍼리퀴드 고래 20곳의 BTC·ETH 롱/숏 노출을 1시간마다 data/snapshots.json 에 기록하고,
+# 같은 실행에서 바이낸스 상위 트레이더 롱/숏 비율(data/binance_ls.json)도 새 날짜만큼 덧붙입니다.
+# index.html 은 두 파일을 읽어 지표 차트 두 개(하이퍼리퀴드 고래 · 바이낸스 고래)를 그립니다.
 
 on:
   schedule:
@@ -10,7 +11,7 @@ on:
   workflow_dispatch: # 수동 실행(테스트·즉시 기록용)
 
 permissions:
-  contents: write # GITHUB_TOKEN 으로 data/snapshots.json 커밋·푸시
+  contents: write # GITHUB_TOKEN 으로 data/*.json 커밋·푸시
 
 concurrency:
   group: whale-snapshot
@@ -42,11 +43,12 @@ jobs:
           set -e
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if [ -z "$(git status --porcelain -- data/snapshots.json)" ]; then
-            echo "::notice::data/snapshots.json 변경 없음 — 커밋 생략"
+          if [ -z "$(git status --porcelain -- data/snapshots.json data/binance_ls.json)" ]; then
+            echo "::notice::data/*.json 변경 없음 — 커밋 생략"
             exit 0
           fi
           git add data/snapshots.json
-          git commit -m "chore: hourly whale snapshot $(date -u +'%Y-%m-%dT%H:%MZ')"
+          [ -f data/binance_ls.json ] && git add data/binance_ls.json
+          git commit -m "chore: hourly whale snapshot + binance long/short $(date -u +'%Y-%m-%dT%H:%MZ')"
           git push
           echo "::notice::스냅샷 커밋 완료 $(git rev-parse --short HEAD)"
