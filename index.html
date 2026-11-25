@@ -795,7 +795,7 @@
 
     .chart-head{padding:14px 18px 12px}
     .ch-price{font-size:20px}
-    #priceChart{height:auto;flex:1 1 auto;min-height:180px}
+    #priceChart{height:auto;flex:1 1 auto;min-height:240px}
     .chartpanel{--ind-h:216px;--bn-h:184px}
     .ch-foot{padding:10px 18px 12px;font-size:11.5px}
 
@@ -1105,7 +1105,7 @@
       <summary>계산 기준 · 한도 · 주의</summary>
       <ul>
         <li><b>지표</b> BTC 롱 비율 = 고래들의 BTC 롱 포지션 평가액 ÷ (롱 + 숏). 1시간 스냅샷도 BTC 기준입니다.</li>
-        <li><b>바이낸스 고래 롱 비율</b> = BTCUSDT 상위 20% 트레이더의 롱/숏 비율. <code>data/binance_ls.json</code>에 2021-12-01 부터 담아 두고(5분 값 → 봉 마감 값), 50% 위는 초록·아래는 빨강. 2022년은 바이낸스가 상위 트레이더 값을 공개하지 않은 구간이라 비어 있습니다.</li>
+        <li><b>바이낸스 고래 롱 비율</b> = BTCUSDT 상위 20% 트레이더의 롱/숏 비율. <code>data/binance_ls.json</code>에 2021-12-01 부터 담아 두고(5분 값 → 봉 마감 값), 50% 위는 초록·아래는 빨강. 2022년은 바이낸스가 상위 트레이더 값을 공개하지 않은 구간이라 비어 있습니다. 1h·4h 가격 캔들은 최근 구간만 있어서, 바이낸스 패널을 축소하면 가격선보다 더 과거의 비율을 볼 수 있습니다.</li>
         <li><b>표시 범위</b> 요약·코인 집계·차트 지표는 BTC·ETH 포지션만 집계합니다. 다른 코인은 개수와 노출 비중만 카드에 표시합니다.</li>
         <li><b>롱·숏 집계</b> ① 포지션 사이즈(평가액 합산) ② 계좌 수(각 지갑의 BTC·ETH 순노출 부호).</li>
         <li><b>차트</b> 캔들은 15m 약 52일 · 1h 약 7개월 · 4h 약 2.3년 · 1d 전체(1회 최대 5,000봉). 지표는 각 지갑 체결의 <code>startPosition</code>을 거슬러 복원하고, 복원이 닿지 않는 구간은 선을 끊습니다(일부 지갑만 반영되면 점선). 체결은 1회 2,000건입니다.</li>
@@ -4133,6 +4133,21 @@
     return out;
   }
 
+  /* 바이낸스 지표 세로축: 보이는 값에 맞추되 50% 기준선은 항상 화면 안에 둡니다
+     (50% 위/아래가 초록·빨강의 경계라서, 기준선이 화면 밖으로 나가면 색의 뜻이 사라집니다). */
+  function bnAutoscale(original) {
+    var res = null;
+    try { res = original(); } catch (e) { res = null; }
+    if (!res || !res.priceRange) return res;
+    var lo = res.priceRange.minValue, hi = res.priceRange.maxValue;
+    if (!isFinite(lo) || !isFinite(hi)) return res;
+    lo = Math.min(lo, 50); hi = Math.max(hi, 50);
+    var pad = Math.max((hi - lo) * 0.06, 0.6);
+    var out = { priceRange: { minValue: Math.max(0, lo - pad), maxValue: Math.min(100, hi + pad) } };
+    if (res.margins) out.margins = res.margins;
+    return out;
+  }
+
   /* ── 차트 생성 ── */
   function createCharts() {
     var LWC = window.LightweightCharts;
@@ -4207,7 +4222,7 @@
           bottomLineColor: "rgba(255,92,120,.95)", bottomFillColor1: "rgba(255,92,120,.02)", bottomFillColor2: "rgba(255,92,120,.26)",
           lineWidth: 2,
           priceFormat: { type: "price", precision: 1, minMove: 0.1 },
-          autoscaleInfoProvider: pctAutoscale,
+          autoscaleInfoProvider: bnAutoscale,
           priceLineStyle: 2, priceLineColor: "rgba(233,238,247,.28)",
           priceLineVisible: true, lastValueVisible: true, crosshairMarkerVisible: true
         });
@@ -4602,8 +4617,13 @@
         botVisible: chChart.bottom ? chChart.bottom.timeScale().getVisibleRange() : null,
         scaleTop: chChart.top ? chChart.top.priceScale("right").width() : -1,
         scaleBot: chChart.bottom ? chChart.bottom.priceScale("right").width() : -1,
+        bnData: chChart.bnS ? chChart.bnS.data().length : -1,
+        bnRange: chChart.bn ? chChart.bn.timeScale().getVisibleLogicalRange() : null,
+        bnVal: CH.ready ? bnValueAt(Math.floor(Date.now() / 1000 / (CHART_TF[CH.tf].ms / 1000)) * (CHART_TF[CH.tf].ms / 1000)) : null,
+        bnState: BN.state,
         xTop: (chChart.top && CH.candles.length) ? chChart.top.timeScale().timeToCoordinate(Math.floor(CH.candles[CH.candles.length - 1].t / 1000)) : null,
         xBot: (chChart.bottom && CH.candles.length) ? chChart.bottom.timeScale().timeToCoordinate(Math.floor(CH.candles[CH.candles.length - 1].t / 1000)) : null,
+        xBn: (chChart.bn && CH.candles.length) ? chChart.bn.timeScale().timeToCoordinate(Math.floor(CH.candles[CH.candles.length - 1].t / 1000)) : null,
         ext: { state: EXT.state, n: EXT.list.length },
         err: CH.drawErr || null
       };
