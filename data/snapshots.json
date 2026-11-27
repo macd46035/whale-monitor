@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-27T14:51:56.685Z",
+  "updated": "2026-11-27T16:17:40.824Z",
   "wallets": [
     "0xecb63caa47c7c4e77f60f1ce858cf28dc2b82b00",
     "0x7fdafde5cfb5465924316eced2d3715494c517d1",
@@ -3492,7 +3492,41 @@
           "total": 20
         }
       }
+    },
+    {
+      "ts": 1795796260824,
+      "iso": "2026-11-27T16:17:40.824Z",
+      "btcEth": {
+        "netLongPct": 22.58,
+        "longUsd": 102812545.5,
+        "shortUsd": 352501128.77,
+        "netUsd": -249688583.27,
+        "accounts": {
+          "long": 5,
+          "short": 12,
+          "flat": 3
+        },
+        "coverage": {
+          "ok": 20,
+          "total": 20
+        }
+      },
+      "btc": {
+        "netLongPct": 23.54,
+        "longUsd": 73906081.97,
+        "shortUsd": 240005169.25,
+        "netUsd": -166099087.28,
+        "accounts": {
+          "long": 5,
+          "short": 12,
+          "flat": 3
+        },
+        "coverage": {
+          "ok": 20,
+          "total": 20
+        }
+      }
     }
   ],
-  "count": 102
+  "count": 103
 }
